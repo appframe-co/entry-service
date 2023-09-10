@@ -48,7 +48,7 @@ export default async function EntryController(entryInput: TEntryInput): Promise<
         }
 
         const resFetchFiles = await fetch(
-            `${process.env.URL_FILE_SERVICE}/api/get_file?projectId=${projectId}`, {
+            `${process.env.URL_FILE_SERVICE}/api/get_files_by_ids?projectId=${projectId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

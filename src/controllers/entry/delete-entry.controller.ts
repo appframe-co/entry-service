@@ -9,7 +9,7 @@ export default async function DeleteEntry(entryInput: TEntryInput): Promise<TErr
             throw new Error('invalid request');
         }
 
-        const entry: TEntryModel|null  = await Entry.findOneAndRemove({
+        const entry: TEntryModel|null  = await Entry.findOneAndDelete({
             createdBy, 
             projectId, 
             _id: id
