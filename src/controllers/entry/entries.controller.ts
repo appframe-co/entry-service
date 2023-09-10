@@ -1,11 +1,11 @@
 import Entry from '@/models/entry.model';
-import {TEntry, TEntryInput, TDoc, TErrorResponse, TFile, TStructure, TEntryModel} from '@/types/types';
+import {TEntry, TEntryInput, TDoc, TErrorResponse, TFile, TStructure, TEntryModel, TParameters} from '@/types/types';
 
 function isErrorStructure(data: TErrorResponse|{structure: TStructure}): data is TErrorResponse {
     return (data as TErrorResponse).error !== undefined;
 }
 
-export default async function Entries(entryInput: TEntryInput): Promise<TErrorResponse | {entries: TEntry[], names: string[], codes: string[]}>{
+export default async function Entries(entryInput: TEntryInput, parameters: TParameters = {}): Promise<TErrorResponse | {entries: TEntry[], names: string[], codes: string[]}>{
     try {
         const {projectId, structureId, createdBy} = entryInput;
 
@@ -13,9 +13,19 @@ export default async function Entries(entryInput: TEntryInput): Promise<TErrorRe
             throw new Error('createdBy & projectId & structureId query required');
         }
 
-        const filter = {createdBy, projectId, structureId};
+        const defaultLimit = 10;
 
-        const entries: TEntryModel[] = await Entry.find(filter);
+        const filter: any = {createdBy, projectId, structureId};
+        let {sinceId, limit=defaultLimit} = parameters;
+
+        if (limit > 250) {
+            limit = defaultLimit;
+        }
+        if (sinceId) {
+            filter['_id'] = {$gt: sinceId};
+        }
+
+        const entries: TEntryModel[] = await Entry.find(filter).limit(limit);
         if (!entries) {
             throw new Error('invalid entries');
         }

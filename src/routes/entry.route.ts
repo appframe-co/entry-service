@@ -4,19 +4,28 @@ import NewEntryController from '@/controllers/entry/new-entry.controller'
 import EditEntryController from '@/controllers/entry/edit-entry.controller'
 import DeleteEntryController from '@/controllers/entry/delete-entry.controller'
 import EntryController from '@/controllers/entry/entry.controller'
-import { TEntryInput } from '@/types/types';
+import { TEntryInput, TParameters } from '@/types/types';
 
 const router = express.Router();
 
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { userId, projectId, structureId } = req.query as {userId: string, projectId: string, structureId: string};
+        const { userId, projectId, structureId, limit, sinceId } = req.query as {userId: string, projectId: string, structureId: string, limit: string, sinceId: string};
+
+        const parameters: TParameters = {};
+        if (limit) {
+            parameters.limit = +limit;
+        }
+        if (sinceId) {
+            parameters.sinceId = sinceId;
+        }
 
         const data = await EntriesController({
             createdBy: userId,
             projectId,
             structureId
-        });
+        }, 
+        parameters);
 
         res.json(data);
     } catch (e) {
