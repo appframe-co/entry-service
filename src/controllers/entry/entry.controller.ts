@@ -29,22 +29,22 @@ export default async function EntryController(entryInput: TEntryInput): Promise<
         const {structure} = structureFetch;
 
         // compare entry by structure
-        const codes = structure.bricks.map(b => b.code);
+        const keys = structure.bricks.map(b => b.key);
         const doc: TDoc = {};
         if (entry.doc) {
-            codes.forEach(code => {
-                doc[code] = entry.doc.hasOwnProperty(code) ? entry.doc[code] : null;
+            keys.forEach(key => {
+                doc[key] = entry.doc.hasOwnProperty(key) ? entry.doc[key] : null;
             });
         }
 
         let fileIds: string[] = [];
-        const types = ['image'];
-        const codeListFile = structure.bricks.filter(b => types.includes(b.type)).map(b => b.code);
-        for (const code of codeListFile) {
-            if (!doc[code]) {
+        const types = ['file'];
+        const keyListFile = structure.bricks.filter(b => types.includes(b.type)).map(b => b.key);
+        for (const key of keyListFile) {
+            if (!doc[key]) {
                 continue;
             }
-            fileIds = [...fileIds, ...doc[code]];
+            fileIds = [...fileIds, ...doc[key]];
         }
 
         const resFetchFiles = await fetch(

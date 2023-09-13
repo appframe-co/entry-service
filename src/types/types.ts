@@ -65,7 +65,8 @@ export type TStructure = {
 type TBrick = {
   type: string;
   name: string;
-  code: string;
+  key: string;
+  description: string;
   validation: TValidationBrick[];
 }
 

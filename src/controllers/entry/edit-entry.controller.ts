@@ -35,11 +35,11 @@ export default async function UpdateEntry(entryInput: TEntryInput): Promise<TErr
         const {structure} = structureFetch;
 
         // compare entry by structure
-        const codes = structure.bricks.map(b => b.code);
+        const keys = structure.bricks.map(b => b.key);
         const doc: TDoc = {};
         if (docInput) {
-            codes.forEach(code => {
-                doc[code] = docInput.hasOwnProperty(code) ? docInput[code] : null;
+            keys.forEach(key => {
+                doc[key] = docInput.hasOwnProperty(key) ? docInput[key] : null;
             });
         }
 

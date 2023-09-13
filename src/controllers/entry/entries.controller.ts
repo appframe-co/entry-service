@@ -5,7 +5,7 @@ function isErrorStructure(data: TErrorResponse|{structure: TStructure}): data is
     return (data as TErrorResponse).error !== undefined;
 }
 
-export default async function Entries(entryInput: TEntryInput, parameters: TParameters = {}): Promise<TErrorResponse | {entries: TEntry[], names: string[], codes: string[]}>{
+export default async function Entries(entryInput: TEntryInput, parameters: TParameters = {}): Promise<TErrorResponse | {entries: TEntry[], names: string[], keys: string[]}>{
     try {
         const {projectId, structureId, createdBy} = entryInput;
 
@@ -46,10 +46,10 @@ export default async function Entries(entryInput: TEntryInput, parameters: TPara
 
         // COMPARE entries by structure
         const names = structure.bricks.map(b => b.name);
-        const codes = structure.bricks.map(b => b.code);
+        const keys = structure.bricks.map(b => b.key);
         const result = entries.map(entry => {
-            const doc = codes.reduce((acc: TDoc, code: string) => {
-                acc[code] = entry.doc.hasOwnProperty(code) ? entry.doc[code] : null
+            const doc = keys.reduce((acc: TDoc, key: string) => {
+                acc[key] = entry.doc.hasOwnProperty(key) ? entry.doc[key] : null
 
                 return acc;
             }, {});
@@ -67,15 +67,15 @@ export default async function Entries(entryInput: TEntryInput, parameters: TPara
         });
 
         let fileIds: string[] = [];
-        const types = ['image'];
-        const codeListFile = structure.bricks.filter(b => types.includes(b.type)).map(b => b.code);
+        const types = ['file'];
+        const keyListFile = structure.bricks.filter(b => types.includes(b.type)).map(b => b.key);
         for (const r of result) {
-            for (const code of codeListFile) {
-                if (!r.doc[code]) {
+            for (const key of keyListFile) {
+                if (!r.doc[key]) {
                     continue;
                 }
                 
-                fileIds = [...fileIds, ...r.doc[code]];
+                fileIds = [...fileIds, ...r.doc[key]];
             }
         }
        
@@ -91,15 +91,15 @@ export default async function Entries(entryInput: TEntryInput, parameters: TPara
         const {files}: {files: TFile[]} = await resFetchFiles.json();
 
         for (const r of result) {
-            for (const code of codeListFile) {
-                if (!r.doc[code]) {
+            for (const key of keyListFile) {
+                if (!r.doc[key]) {
                     continue;
                 }
-                r.doc[code] = files.filter(file => r.doc[code].includes(file.id));
+                r.doc[key] = files.filter(file => r.doc[key].includes(file.id));
             }
         }
 
-        return {entries: result, names, codes};
+        return {entries: result, names, keys};
     } catch (error) {
         throw error;
     }
