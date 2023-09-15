@@ -7,15 +7,15 @@ function isErrorStructure(data: TErrorResponse|{structure: TStructure}): data is
 
 export default async function Entries(entryInput: TEntryInput, parameters: TParameters = {}): Promise<TErrorResponse | {entries: TEntry[], names: string[], keys: string[]}>{
     try {
-        const {projectId, structureId, createdBy} = entryInput;
+        const {projectId, structureId, userId} = entryInput;
 
-        if (!createdBy || !projectId || !structureId) {
+        if (!userId || !projectId || !structureId) {
             throw new Error('createdBy & projectId & structureId query required');
         }
 
         const defaultLimit = 10;
 
-        const filter: any = {createdBy, projectId, structureId};
+        const filter: any = {createdBy: userId, projectId, structureId};
         let {sinceId, limit=defaultLimit} = parameters;
 
         if (limit > 250) {
@@ -31,7 +31,7 @@ export default async function Entries(entryInput: TEntryInput, parameters: TPara
         }
 
         // GET structure
-        const resFetchStructure = await fetch(`${process.env.URL_STRUCTURE_SERVICE}/api/structures/${structureId}?userId=${createdBy}&projectId=${projectId}`, {
+        const resFetchStructure = await fetch(`${process.env.URL_STRUCTURE_SERVICE}/api/structures/${structureId}?userId=${userId}&projectId=${projectId}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'

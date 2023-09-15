@@ -1,16 +1,16 @@
 import Entry from '@/models/entry.model';
 import { TEntryModel, TEntryInput, TErrorResponse } from '@/types/types';
 
-export default async function DeleteEntry(entryInput: TEntryInput): Promise<TErrorResponse | {}> {
+export default async function DeleteEntry(entryInput: Omit<TEntryInput, 'structureId'>): Promise<TErrorResponse | {}> {
     try {
-        const {createdBy, projectId, id} = entryInput;
+        const {userId, projectId, id} = entryInput;
 
         if (!id) {
             throw new Error('invalid request');
         }
 
         const entry: TEntryModel|null  = await Entry.findOneAndDelete({
-            createdBy, 
+            createdBy: userId, 
             projectId, 
             _id: id
         });

@@ -21,7 +21,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
         }
 
         const data = await EntriesController({
-            createdBy: userId,
+            userId,
             projectId,
             structureId
         }, 
@@ -46,8 +46,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
         const data = await NewEntryController({
             projectId,
             structureId,
-            createdBy: userId,
-            updatedBy: userId,
+            userId,
             doc
         });
 
@@ -75,8 +74,7 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
             id,
             projectId,
             structureId,
-            createdBy: userId,
-            updatedBy: userId,
+            userId,
             doc
         });
 
@@ -98,7 +96,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
         const { id } = req.params;
 
         const data = await EntryController({
-            createdBy: userId,
+            userId,
             projectId,
             structureId,
             id
@@ -122,7 +120,7 @@ router.delete('/:id', async (req: Request, res: Response, next: NextFunction) =>
         const { id } = req.params;
 
         const data = await DeleteEntryController({
-            createdBy: userId,
+            userId,
             projectId,
             id
         });

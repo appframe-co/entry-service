@@ -15,6 +15,7 @@ export type TDoc = {[key: string]: any}
 export type TEntryModel = {
   id: string;
   projectId: string;
+  userId: string;
   structureId: string;
   createdAt: string;
   updatedAt: string;
@@ -36,10 +37,9 @@ export type TEntry = {
 
 export type TEntryInput = {
 	id?: string, 
-	createdBy: string; 
+	userId: string; 
 	projectId: string;
-	structureId?: string;
-	updatedBy?: string;
+	structureId: string;
 	doc?: TDoc
 }
 

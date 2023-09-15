@@ -16,6 +16,10 @@ const EntriesSchema: Schema = new Schema({
         type: ObjectId,
         require: true
     },
+    userId: {
+        type: ObjectId,
+        require: true
+    },
     createdAt: {
         type: Date,
         required: true,

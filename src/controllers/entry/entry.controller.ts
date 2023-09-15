@@ -7,15 +7,15 @@ function isErrorStructure(data: TErrorResponse|{structure: TStructure}): data is
 
 export default async function EntryController(entryInput: TEntryInput): Promise<TErrorResponse | {entry: TEntry, files: TFile[]}> {
     try {
-        const {id, projectId, createdBy, structureId} = entryInput;
+        const {id, projectId, userId, structureId} = entryInput;
 
-        const entry: TEntryModel|null = await Entry.findOne({createdBy, projectId, _id: id});
+        const entry: TEntryModel|null = await Entry.findOne({createdBy: userId, projectId, _id: id});
         if (!entry) {
             throw new Error('invalid entry');
         }
 
         // GET structure
-        const resFetchStructure = await fetch(`${process.env.URL_STRUCTURE_SERVICE}/api/structures/${structureId}?userId=${createdBy}&projectId=${projectId}`, {
+        const resFetchStructure = await fetch(`${process.env.URL_STRUCTURE_SERVICE}/api/structures/${structureId}?userId=${userId}&projectId=${projectId}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
