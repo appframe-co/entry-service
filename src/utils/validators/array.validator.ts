@@ -1,6 +1,6 @@
 import { produce } from "immer";
-import { stringValidator } from "./string.validator";
-import { numberValidator } from "./number.validator";
+import { validateString } from "./string.validator";
+import { validateNumber } from "./number.validator";
 
 function setOutputOption(v: any=[], msg:string='') {
     const res = Array.isArray(v) ? [v[0], v[1] ? v[1] : msg] : [v, msg];
@@ -10,7 +10,7 @@ function setOutputOption(v: any=[], msg:string='') {
     return res;
 }
 
-export function arrayValidator(value: any, options:any={}) {
+export function validateArray(value: any, options:any={}) {
     const {value: valueOptions={}, defaultValue=[]} = options;
     let outputValue: any = produce(value, (draft: any) => draft);
     const errors = [];
@@ -57,7 +57,7 @@ export function arrayValidator(value: any, options:any={}) {
         outputValue = produce(outputValue, (draftStateValue: any) =>
             draftStateValue.map((v: any) => {
                 if (valueOptions[0] === 'string') {
-                    const [errorsValue, outputValue] = stringValidator(v, valueOptions[1]);
+                    const [errorsValue, outputValue] = validateString(v, valueOptions[1]);
                     if (errorsValue.length > 0) {
                         errors.push(errorsValue[0]);
                     } else {
@@ -67,7 +67,7 @@ export function arrayValidator(value: any, options:any={}) {
                     return outputValue;
                 }
                 if (valueOptions[0] === 'number') {
-                    const [errorsValue, outputValue] = numberValidator(v, valueOptions[1]);
+                    const [errorsValue, outputValue] = validateNumber(v, valueOptions[1]);
                     if (errorsValue.length > 0) {
                         errors.push(errorsValue[0]);
                     } else {

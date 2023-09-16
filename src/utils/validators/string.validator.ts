@@ -6,7 +6,7 @@ function setOutputOption(v: any=[], msg:string='') {
     return res;
 }
 
-export function stringValidator(value: string, options:any={}, msg:any={}) {
+export function validateString(value: string, options:any={}, msg:any={}) {
     const {defaultValue=''} = options;
     let outputValue = value;
     const errors = [];

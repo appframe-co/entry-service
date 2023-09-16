@@ -1,9 +1,9 @@
 import Entry from '@/models/entry.model';
 import { TEntry, TEntryInput, TDoc, TErrorResponse, TStructure, TEntryModel } from '@/types/types';
 
-import { stringValidator } from '@/utils/validators/string.validator';
-import { numberValidator } from '@/utils/validators/number.validator';
-import { arrayValidator } from '@/utils/validators/array.validator';
+import { validateString } from '@/utils/validators/string.validator';
+import { validateNumber } from '@/utils/validators/number.validator';
+import { validateArray } from '@/utils/validators/array.validator';
 
 
 function isErrorStructure(data: TErrorResponse|{structure: TStructure}): data is TErrorResponse {
@@ -59,22 +59,22 @@ export default async function CreateEntry(entryInput: TEntryInput): Promise<{ent
                             }, {});
 
                             if (schemaData.type === 'single_line_text' || schemaData.type === 'multi_line_text') {
-                                return stringValidator(valueData, options);
+                                return validateString(valueData, options);
                             }
                             if (schemaData.type === 'number_integer' || schemaData.type === 'number_decimal') {
-                                return numberValidator(valueData, options);
+                                return validateNumber(valueData, options);
                             }
                             if (schemaData.type === 'file') {
-                                return arrayValidator(valueData, options);
+                                return validateArray(valueData, options);
                             }
                             if (schemaData.type === 'list.single_line_text') {
-                                const [errorsField, valueField] = arrayValidator(JSON.parse(valueData), {
+                                const [errorsField, valueField] = validateArray(JSON.parse(valueData), {
                                     value: ['string', options]
                                 });
                                 return [errorsField, JSON.stringify(valueField)];
                             }
                             if (schemaData.type === 'list.number_integer' || schemaData.type === 'list.number_decimal') {
-                                const [errorsField, valueField] = arrayValidator(JSON.parse(valueData), {
+                                const [errorsField, valueField] = validateArray(JSON.parse(valueData), {
                                     value: ['number', options]
                                 });
                                 return [errorsField, JSON.stringify(valueField)];

@@ -6,7 +6,7 @@ function setOutputOption(v: any=[], msg:string='') {
     return res;
 }
 
-export function numberValidator(value: string, options:any={}, msg:any={}) {
+export function validateNumber(value: string, options:any={}, msg:any={}) {
     const {defaultValue=0} = options;
     let outputValue: any = value;
     const errors = [];
