@@ -39,7 +39,7 @@ export default async function UpdateEntry(entryInput: TEntryInput): Promise<{ent
         const {structure} = structureFetch;
 
         // compare entry by structure
-        const schemaDataBody = structure.bricks.map(b => ({key: b.key, type: b.type, validation: b.validation}));
+        const schemaDataBody = structure.bricks.map(b => ({key: b.key, type: b.type, validations: b.validations}));
 
         const {errors: errorsForm, data: validatedData} = await (async (data, payload) => {
             try {
@@ -57,7 +57,7 @@ export default async function UpdateEntry(entryInput: TEntryInput): Promise<{ent
                         const valueData = data[schemaData.key];
 
                         const [errorsValue, valueValue] = (function(){
-                            const options = schemaData.validation.reduce((acc: any, v) => {
+                            const options = schemaData.validations.reduce((acc: any, v) => {
                                 acc[v.code] = v.value;
                                 return acc;
                             }, {});
@@ -87,7 +87,7 @@ export default async function UpdateEntry(entryInput: TEntryInput): Promise<{ent
                             return [[], valueData];
                         }());
                         if (errorsValue.length > 0) {
-                            if (errorsValue.length > 1) {
+                            if (schemaData.type.split('.')[0] === 'list' && errorsValue.length > 1) {
                                 for (let i=0; i < errorsValue.length; i++) {
                                     if (!errorsValue[i]) {
                                         continue;

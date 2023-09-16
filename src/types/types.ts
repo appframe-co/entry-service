@@ -67,7 +67,7 @@ type TBrick = {
   name: string;
   key: string;
   description: string;
-  validation: TValidationBrick[];
+  validations: TValidationBrick[];
 }
 
 type TValidationBrick = {
