@@ -67,11 +67,32 @@ export default async function CreateEntry(entryInput: TEntryInput): Promise<{ent
                             if (schemaData.type === 'file') {
                                 return arrayValidator(valueData, options);
                             }
+                            if (schemaData.type === 'list.single_line_text') {
+                                const [errorsField, valueField] = arrayValidator(JSON.parse(valueData), {
+                                    value: ['string', options]
+                                });
+                                return [errorsField, JSON.stringify(valueField)];
+                            }
+                            if (schemaData.type === 'list.number_integer' || schemaData.type === 'list.number_decimal') {
+                                const [errorsField, valueField] = arrayValidator(JSON.parse(valueData), {
+                                    value: ['number', options]
+                                });
+                                return [errorsField, JSON.stringify(valueField)];
+                            }
 
                             return [[], valueData];
                         }());
                         if (errorsValue.length > 0) {
-                            errors.push({field: [schemaData.key], message: errorsValue[0]});
+                            if (errorsValue.length > 1) {
+                                for (let i=0; i < errorsValue.length; i++) {
+                                    if (!errorsValue[i]) {
+                                        continue;
+                                    }
+                                    errors.push({field: [schemaData.key, i], message: errorsValue[i]}); 
+                                }
+                            } else {
+                                errors.push({field: [schemaData.key], message: errorsValue[0]}); 
+                            }
                         }
                         entry[schemaData.key] = valueValue;
                     }

@@ -1,5 +1,6 @@
 import { produce } from "immer";
 import { stringValidator } from "./string.validator";
+import { numberValidator } from "./number.validator";
 
 function setOutputOption(v: any=[], msg:string='') {
     const res = Array.isArray(v) ? [v[0], v[1] ? v[1] : msg] : [v, msg];
@@ -59,6 +60,18 @@ export function arrayValidator(value: any, options:any={}) {
                     const [errorsValue, outputValue] = stringValidator(v, valueOptions[1]);
                     if (errorsValue.length > 0) {
                         errors.push(errorsValue[0]);
+                    } else {
+                        errors.push('');
+                    }
+
+                    return outputValue;
+                }
+                if (valueOptions[0] === 'number') {
+                    const [errorsValue, outputValue] = numberValidator(v, valueOptions[1]);
+                    if (errorsValue.length > 0) {
+                        errors.push(errorsValue[0]);
+                    } else {
+                        errors.push('');
                     }
 
                     return outputValue;
