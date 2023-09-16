@@ -72,14 +72,18 @@ export default async function UpdateEntry(entryInput: TEntryInput): Promise<{ent
                                 return validateArray(valueData, options);
                             }
                             if (schemaData.type === 'list.single_line_text') {
+                                const {required, ...restOptions} = options;
                                 const [errorsField, valueField] = validateArray(JSON.parse(valueData), {
-                                    value: ['string', options]
+                                    required,
+                                    value: ['string', restOptions]
                                 });
                                 return [errorsField, JSON.stringify(valueField)];
                             }
                             if (schemaData.type === 'list.number_integer' || schemaData.type === 'list.number_decimal') {
+                                const {required, ...restOptions} = options;
                                 const [errorsField, valueField] = validateArray(JSON.parse(valueData), {
-                                    value: ['number', options]
+                                    required,
+                                    value: ['number', restOptions]
                                 });
                                 return [errorsField, JSON.stringify(valueField)];
                             }
@@ -87,7 +91,7 @@ export default async function UpdateEntry(entryInput: TEntryInput): Promise<{ent
                             return [[], valueData];
                         }());
                         if (errorsValue.length > 0) {
-                            if (schemaData.type.split('.')[0] === 'list' && errorsValue.length > 1) {
+                            if (schemaData.type.split('.')[0] === 'list' && JSON.parse(valueValue).length) {
                                 for (let i=0; i < errorsValue.length; i++) {
                                     if (!errorsValue[i]) {
                                         continue;
