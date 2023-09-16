@@ -38,7 +38,7 @@ export default async function EntryController(entryInput: TEntryInput): Promise<
         }
 
         let fileIds: string[] = [];
-        const types = ['file'];
+        const types = ['file_reference'];
         const keyListFile = structure.bricks.filter(b => types.includes(b.type)).map(b => b.key);
         for (const key of keyListFile) {
             if (!doc[key]) {

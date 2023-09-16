@@ -67,7 +67,7 @@ export default async function Entries(entryInput: TEntryInput, parameters: TPara
         });
 
         let fileIds: string[] = [];
-        const types = ['file'];
+        const types = ['file_reference'];
         const keyListFile = structure.bricks.filter(b => types.includes(b.type)).map(b => b.key);
         for (const r of result) {
             for (const key of keyListFile) {
@@ -78,7 +78,7 @@ export default async function Entries(entryInput: TEntryInput, parameters: TPara
                 fileIds = [...fileIds, ...r.doc[key]];
             }
         }
-       
+
         // MERGE files with entry
         const resFetchFiles = await fetch(
             `${process.env.URL_FILE_SERVICE}/api/get_files_by_ids?projectId=${projectId}`, {

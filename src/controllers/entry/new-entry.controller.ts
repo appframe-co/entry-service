@@ -64,7 +64,7 @@ export default async function CreateEntry(entryInput: TEntryInput): Promise<{ent
                             if (schemaData.type === 'number_integer' || schemaData.type === 'number_decimal') {
                                 return validateNumber(valueData, options);
                             }
-                            if (schemaData.type === 'file') {
+                            if (schemaData.type === 'file_reference') {
                                 return validateArray(valueData, options);
                             }
                             if (schemaData.type === 'list.single_line_text') {
