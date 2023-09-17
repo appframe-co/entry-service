@@ -100,7 +100,13 @@ export default async function Entries(entryInput: TEntryInput, parameters: TPara
                 if (!r.doc[key]) {
                     continue;
                 }
-                r.doc[key] = files.filter(file => r.doc[key].includes(file.id));
+
+                if (Array.isArray(r.doc[key])) {
+                    r.doc[key] = files.filter(file => r.doc[key].includes(file.id));
+                } else {
+                    r.doc[key] = files.find(file => r.doc[key].includes(file.id));
+                }
+                
             }
         }
 
