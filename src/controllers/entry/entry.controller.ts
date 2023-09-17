@@ -38,13 +38,18 @@ export default async function EntryController(entryInput: TEntryInput): Promise<
         }
 
         let fileIds: string[] = [];
-        const types = ['file_reference'];
+        const types = ['file_reference', 'list.file_reference'];
         const keyListFile = structure.bricks.filter(b => types.includes(b.type)).map(b => b.key);
         for (const key of keyListFile) {
             if (!doc[key]) {
                 continue;
             }
-            fileIds = [...fileIds, ...doc[key]];
+
+            if (Array.isArray(doc[key])) {
+                fileIds = [...fileIds, ...doc[key]];
+            } else {
+                fileIds = [...fileIds, doc[key]];
+            }
         }
 
         const resFetchFiles = await fetch(
@@ -56,7 +61,6 @@ export default async function EntryController(entryInput: TEntryInput): Promise<
             body: JSON.stringify({fileIds})
         });
         const {files}: {files: TFile[]} = await resFetchFiles.json();
-
 
         const output = {
             id: entry.id,

@@ -15,7 +15,7 @@ export function validateArray(value: any, options:any={}) {
     let outputValue: any = produce(value, (draft: any) => draft);
     const errors = [];
 
-    const require = setOutputOption(options.required, "can't be blank");
+    const require = setOutputOption(options.required, "Value can't be blank");
     const unique = setOutputOption(options.unique, 'is not unique');
     const maxLength = setOutputOption(options.max, 'Cannot have more than #value# elements');
 
@@ -80,6 +80,7 @@ export function validateArray(value: any, options:any={}) {
                 return v;
             }));
     } catch (e) {
+        console.log(e)
         errors.push(e);
     } finally {
         return [errors, outputValue];

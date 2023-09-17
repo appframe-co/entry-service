@@ -67,15 +67,20 @@ export default async function Entries(entryInput: TEntryInput, parameters: TPara
         });
 
         let fileIds: string[] = [];
-        const types = ['file_reference'];
+        const types = ['file_reference', 'list.file_reference'];
         const keyListFile = structure.bricks.filter(b => types.includes(b.type)).map(b => b.key);
+
         for (const r of result) {
             for (const key of keyListFile) {
                 if (!r.doc[key]) {
                     continue;
                 }
                 
-                fileIds = [...fileIds, ...r.doc[key]];
+                if (Array.isArray(r.doc[key])) {
+                    fileIds = [...fileIds, ...r.doc[key]];
+                } else {
+                    fileIds = [...fileIds, r.doc[key]];
+                }
             }
         }
 
