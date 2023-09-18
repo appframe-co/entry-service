@@ -26,11 +26,15 @@ export function validateArray(value: any, options:any={}) {
         }
 
         if (blank.includes(outputValue)) {
-            outputValue = produce(defaultValue, (draft: any) => draft);
-
             if (require[0]) {
                 errors.push(require[1]);
             }
+
+            if (outputValue === null || outputValue === undefined) {
+                return [errors, null];
+            }
+
+            outputValue = produce(defaultValue, (draft: any) => draft);
         }
 
         if (!Array.isArray(outputValue)) {

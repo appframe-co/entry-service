@@ -6,7 +6,7 @@ function setOutputOption(v: any=[], msg:string='') {
     return res;
 }
 
-export function validateNumber(value: string, options:any={}, msg:any={}) {
+export function validateNumber(value: string, options:any={}, msg:any={}): [string[], number|null] {
     const {defaultValue=0} = options;
     let outputValue: any = value;
     const errors = [];
@@ -21,11 +21,15 @@ export function validateNumber(value: string, options:any={}, msg:any={}) {
     try {
         const blank = [null, undefined, 0];
         if (blank.includes(outputValue)) {
-            outputValue = defaultValue;
-
             if (require[0]) {
                 errors.push(require[1]);
             }
+
+            if (outputValue === null || outputValue === undefined) {
+                return [errors, null];
+            }
+
+            outputValue = defaultValue;
         }
 
         outputValue = Number(outputValue);

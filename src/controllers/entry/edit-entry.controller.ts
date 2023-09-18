@@ -107,7 +107,9 @@ export default async function UpdateEntry(entryInput: TEntryInput): Promise<{ent
                                 errors.push({field: [schemaData.key], message: errorsValue[0]}); 
                             }
                         }
-                        entry[schemaData.key] = valueValue;
+                        if (valueValue !== null && valueValue !== undefined) {
+                            entry[schemaData.key] = valueValue;
+                        }
                     }
 
                     return entry;

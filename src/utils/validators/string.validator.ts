@@ -6,7 +6,7 @@ function setOutputOption(v: any=[], msg:string='') {
     return res;
 }
 
-export function validateString(value: string, options:any={}, msg:any={}) {
+export function validateString(value: string, options:any={}, msg:any={}): [string[], string|null] {
     const {defaultValue=''} = options;
     let outputValue = value;
     const errors = [];
@@ -23,11 +23,15 @@ export function validateString(value: string, options:any={}, msg:any={}) {
         outputValue = (outputValue && typeof outputValue === 'string') ? outputValue.trim() : outputValue;
 
         if (blank.includes(outputValue)) {
-            outputValue = defaultValue;
-
             if (require[0]) {
                 errors.push(require[1]);
             }
+
+            if (outputValue === null || outputValue === undefined) {
+                return [errors, null];
+            }
+
+            outputValue = defaultValue;
         }
 
         outputValue = outputValue.toString();
