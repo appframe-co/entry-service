@@ -8,9 +8,17 @@ import { TEntryInput, TParameters } from '@/types/types';
 
 const router = express.Router();
 
+type TQueryGet = {
+    userId: string;
+    projectId: string;
+    structureId: string;
+    limit: string;
+    sinceId: string;
+}
+
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { userId, projectId, structureId, limit, sinceId } = req.query as {userId: string, projectId: string, structureId: string, limit: string, sinceId: string};
+        const { userId, projectId, structureId, limit, sinceId } = req.query as TQueryGet;
 
         const parameters: TParameters = {};
         if (limit) {
