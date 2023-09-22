@@ -10,7 +10,7 @@ export default async function Entries(entryInput: TEntryInput, parameters: TPara
         const {projectId, structureId, userId} = entryInput;
 
         if (!userId || !projectId || !structureId) {
-            throw new Error('createdBy & projectId & structureId query required');
+            throw new Error('userId & projectId & structureId query required');
         }
 
         const defaultLimit = 10;
