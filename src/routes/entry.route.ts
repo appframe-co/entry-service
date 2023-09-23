@@ -4,6 +4,7 @@ import NewEntryController from '@/controllers/entry/new-entry.controller'
 import EditEntryController from '@/controllers/entry/edit-entry.controller'
 import DeleteEntryController from '@/controllers/entry/delete-entry.controller'
 import EntryController from '@/controllers/entry/entry.controller'
+import CountEntryController from '@/controllers/entry/count-entries.controller'
 import { TEntryInput, TParameters } from '@/types/types';
 
 const router = express.Router();
@@ -34,6 +35,28 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
             structureId
         }, 
         parameters);
+
+        res.json(data);
+    } catch (e) {
+        let message = String(e);
+
+        if (e instanceof Error) {
+            message = e.message; 
+        }
+
+        res.json({error: 'server_error', description: message});
+    }
+});
+
+router.get('/count', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { userId, projectId, structureId } = req.query as {userId: string, projectId: string, structureId: string};
+
+        const data = await CountEntryController({
+            userId,
+            projectId,
+            structureId,
+        });
 
         res.json(data);
     } catch (e) {
