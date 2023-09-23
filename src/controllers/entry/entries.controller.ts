@@ -16,7 +16,7 @@ export default async function Entries(entryInput: TEntryInput, parameters: TPara
         const defaultLimit = 10;
 
         const filter: any = {createdBy: userId, projectId, structureId};
-        let {sinceId, limit=defaultLimit} = parameters;
+        let {sinceId, limit=defaultLimit, skip=0} = parameters;
 
         if (limit > 250) {
             limit = defaultLimit;
@@ -25,7 +25,7 @@ export default async function Entries(entryInput: TEntryInput, parameters: TPara
             filter['_id'] = {$gt: sinceId};
         }
 
-        const entries: TEntryModel[] = await Entry.find(filter).limit(limit);
+        const entries: TEntryModel[] = await Entry.find(filter).skip(skip).limit(limit);
         if (!entries) {
             throw new Error('invalid entries');
         }

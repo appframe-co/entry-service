@@ -14,16 +14,20 @@ type TQueryGet = {
     projectId: string;
     structureId: string;
     limit: string;
+    skip: string;
     sinceId: string;
 }
 
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { userId, projectId, structureId, limit, sinceId } = req.query as TQueryGet;
+        const { userId, projectId, structureId, limit, skip, sinceId } = req.query as TQueryGet;
 
         const parameters: TParameters = {};
         if (limit) {
             parameters.limit = +limit;
+        }
+        if (skip) {
+            parameters.skip = +skip;
         }
         if (sinceId) {
             parameters.sinceId = sinceId;

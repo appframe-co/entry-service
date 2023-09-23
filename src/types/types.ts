@@ -77,5 +77,6 @@ type TValidationBrick = {
 
 export type TParameters = {
   limit?: number;
+  skip?: number;
   sinceId?: string;
 }
