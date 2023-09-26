@@ -16,7 +16,7 @@ export function validateString(value: string, options:any={}, msg:any={}): [stri
     const min = setOutputOption(options.min, 'Value has a minimum of #value#.');
     const regExp = setOutputOption(options.regex, 'Value has a invalid regExp');
     const email = setOutputOption(options.email, 'invalid email');
-    const enumList = setOutputOption(options.enumList, 'is not included in the list');
+    const enumList = setOutputOption(options.choices, 'Value does not exist in provided choices: [#value#].');
 
     try {
         const blank = [null, undefined, ''];
@@ -40,6 +40,7 @@ export function validateString(value: string, options:any={}, msg:any={}): [stri
         if (max[0] && outputValue.length > max[0]) {
             errors.push(max[1]);
         }
+
         if (min[0] && outputValue.length < min[0]) {
             errors.push(min[1]);
         }
@@ -50,7 +51,8 @@ export function validateString(value: string, options:any={}, msg:any={}): [stri
                 errors.push(regExp[1]);
             }
         }
-        if (enumList[0] && !enumList[0].includes(outputValue)) {
+
+        if (enumList[0] && enumList[0].length > 0 && !enumList[0].includes(outputValue)) {
             errors.push(enumList[1]);
         }
     } catch (e) {

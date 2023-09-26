@@ -54,7 +54,7 @@ export default async function CreateEntry(entryInput: TEntryInput): Promise<{ent
 
                         const [errorsValue, valueValue] = (function(){
                             const options = schemaData.validations.reduce((acc: any, v) => {
-                                acc[v.code] = v.value;
+                                acc[v.code] = [v.value];
                                 return acc;
                             }, {});
 

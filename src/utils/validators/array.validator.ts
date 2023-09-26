@@ -84,7 +84,6 @@ export function validateArray(value: any, options:any={}) {
                 return v;
             }));
     } catch (e) {
-        console.log(e)
         errors.push(e);
     } finally {
         return [errors, outputValue];
