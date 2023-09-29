@@ -4,6 +4,8 @@ import { TEntry, TEntryInput, TDoc, TErrorResponse, TStructure, TEntryModel } fr
 import { validateString } from '@/utils/validators/string.validator';
 import { validateNumber } from '@/utils/validators/number.validator';
 import { validateArray } from '@/utils/validators/array.validator';
+import { validateDate } from '@/utils/validators/date.validator';
+import { validateDateTime } from '@/utils/validators/datetime.validator';
 
 
 function isErrorStructure(data: TErrorResponse|{structure: TStructure}): data is TErrorResponse {
@@ -67,6 +69,12 @@ export default async function CreateEntry(entryInput: TEntryInput): Promise<{ent
                             if (schemaData.type === 'boolean') {
                                 return validateString(valueData, options);
                             }
+                            if (schemaData.type === 'date_time') {
+                                return validateDateTime(valueData, options);
+                            }
+                            if (schemaData.type === 'date') {
+                                return validateDate(valueData, options);
+                            }
                             if (schemaData.type === 'file_reference') {
                                 return validateString(valueData, options);
                             }
@@ -82,6 +90,20 @@ export default async function CreateEntry(entryInput: TEntryInput): Promise<{ent
                                 return validateArray(valueData, {
                                     required,
                                     value: ['number', restOptions]
+                                });
+                            }
+                            if (schemaData.type === 'list.date_time') {
+                                const {required, ...restOptions} = options;
+                                return validateArray(valueData, {
+                                    required,
+                                    value: ['datetime', restOptions]
+                                });
+                            }
+                            if (schemaData.type === 'list.date') {
+                                const {required, ...restOptions} = options;
+                                return validateArray(valueData, {
+                                    required,
+                                    value: ['date', restOptions]
                                 });
                             }
                             if (schemaData.type === 'list.file_reference') {
