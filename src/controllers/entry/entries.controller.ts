@@ -7,7 +7,7 @@ function isErrorStructure(data: TErrorResponse|{structure: TStructure}): data is
 
 export default async function Entries(entryInput: TEntryInput, parameters: TParameters = {}): Promise<TErrorResponse | {entries: TEntry[], names: string[], keys: string[]}>{
     try {
-        const {projectId, structureId, userId} = entryInput;
+        const {userId, projectId, structureId} = entryInput;
 
         if (!userId || !projectId || !structureId) {
             throw new Error('userId & projectId & structureId query required');
