@@ -16,7 +16,7 @@ export default async function Entries(entryInput: TEntryInput, parameters: TPara
         const defaultLimit = 10;
 
         const filter: any = {createdBy: userId, projectId, structureId};
-        let {sinceId, limit=defaultLimit, skip=0} = parameters;
+        let {sinceId, limit=defaultLimit, page=1} = parameters;
 
         if (limit > 250) {
             limit = defaultLimit;
@@ -24,6 +24,8 @@ export default async function Entries(entryInput: TEntryInput, parameters: TPara
         if (sinceId) {
             filter['_id'] = {$gt: sinceId};
         }
+
+        const skip = (page - 1) * limit;
 
         const entries: TEntryModel[] = await Entry.find(filter).skip(skip).limit(limit);
         if (!entries) {
