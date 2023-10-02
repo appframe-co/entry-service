@@ -79,4 +79,5 @@ export type TParameters = {
   limit?: number;
   page?: number;
   sinceId?: string;
+  ids?: string;
 }

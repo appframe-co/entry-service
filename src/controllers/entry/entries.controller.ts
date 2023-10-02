@@ -16,13 +16,16 @@ export default async function Entries(entryInput: TEntryInput, parameters: TPara
         const defaultLimit = 10;
 
         const filter: any = {createdBy: userId, projectId, structureId};
-        let {sinceId, limit=defaultLimit, page=1} = parameters;
+        let {sinceId, limit=defaultLimit, page=1, ids} = parameters;
 
         if (limit > 250) {
             limit = defaultLimit;
         }
         if (sinceId) {
             filter['_id'] = {$gt: sinceId};
+        }
+        if (ids) {
+            filter['_id'] = {$in: ids.split(',')};
         }
 
         const skip = (page - 1) * limit;
