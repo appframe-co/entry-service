@@ -3,7 +3,7 @@ import mongoose, { Schema, Document } from "mongoose";
 
 const ObjectId = Schema.ObjectId;
 
-const DocSchema: Schema = new Schema({}, { strict: false });
+const DocSchema: Schema = new Schema({}, { _id : false, strict: false });
 DocSchema.set('toObject', { virtuals: true });
 DocSchema.set('toJSON', { virtuals: true });
 
