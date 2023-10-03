@@ -162,7 +162,8 @@ export default async function UpdateEntry(entryInput: TEntryInput): Promise<{ent
                 const errors: any = [];
                 const output: any = {};
 
-                const entry: TEntryModel|null = await Entry.findOneAndUpdate({userId, projectId, _id: id}, {doc: data.entry, updatedBy: userId});
+                const updatedAt = new Date();
+                const entry: TEntryModel|null = await Entry.findOneAndUpdate({userId, projectId, _id: id}, {doc: data.entry, updatedAt, updatedBy: userId});
                 if (isErrorEntry(entry)) {
                     throw new Error('Failed to update entry');
                 }
