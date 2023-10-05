@@ -19,7 +19,7 @@ export function validateNumber(value: string, options:any={}, msg:any={}): [stri
     const maxPrecision = setOutputOption(options.max_precision, 'Value can\'t exceed #value# decimal places.');
 
     try {
-        const blank = [null, undefined, 0];
+        const blank = [null, undefined, NaN, 0, ''];
         if (blank.includes(outputValue)) {
             if (require[0]) {
                 errors.push(require[1]);

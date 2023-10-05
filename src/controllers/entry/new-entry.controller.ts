@@ -54,82 +54,224 @@ export default async function CreateEntry(entryInput: TEntryInput): Promise<{ent
                     for (const schemaData of schemaDataBody) {
                         const valueData = data[schemaData.key];
 
-                        const [errorsValue, valueValue] = (function(){
-                            const options = schemaData.validations.reduce((acc: any, v) => {
-                                acc[v.code] = [v.value];
-                                return acc;
-                            }, {});
+                        const options = schemaData.validations.reduce((acc: any, v) => {
+                            acc[v.code] = [v.value];
+                            return acc;
+                        }, {});
 
-                            if (schemaData.type === 'single_line_text' || schemaData.type === 'multi_line_text') {
-                                return validateString(valueData, options);
-                            }
-                            if (schemaData.type === 'number_integer' || schemaData.type === 'number_decimal') {
-                                return validateNumber(valueData, options);
-                            }
-                            if (schemaData.type === 'boolean') {
-                                return validateString(valueData, options);
-                            }
-                            if (schemaData.type === 'date_time') {
-                                return validateDateTime(valueData, options);
-                            }
-                            if (schemaData.type === 'date') {
-                                return validateDate(valueData, options);
-                            }
-                            if (schemaData.type === 'file_reference') {
-                                return validateString(valueData, options);
-                            }
-                            if (schemaData.type === 'list.single_line_text') {
-                                const {required, ...restOptions} = options;
-                                return validateArray(valueData, {
-                                    required,
-                                    value: ['string', restOptions]
-                                });
-                            }
-                            if (schemaData.type === 'list.number_integer' || schemaData.type === 'list.number_decimal') {
-                                const {required, ...restOptions} = options;
-                                return validateArray(valueData, {
-                                    required,
-                                    value: ['number', restOptions]
-                                });
-                            }
-                            if (schemaData.type === 'list.date_time') {
-                                const {required, ...restOptions} = options;
-                                return validateArray(valueData, {
-                                    required,
-                                    value: ['datetime', restOptions]
-                                });
-                            }
-                            if (schemaData.type === 'list.date') {
-                                const {required, ...restOptions} = options;
-                                return validateArray(valueData, {
-                                    required,
-                                    value: ['date', restOptions]
-                                });
-                            }
-                            if (schemaData.type === 'list.file_reference') {
-                                const {required, ...restOptions} = options;
-                                return validateArray(valueData, {
-                                    required,
-                                    value: ['string', restOptions]
-                                });
-                            }
+                        if (schemaData.type === 'single_line_text' || schemaData.type === 'multi_line_text') {
+                            const [errorsValue, valueValue] = validateString(valueData, options);
 
-                            return [[], valueData];
-                        }());
-                        if (errorsValue.length > 0) {
-                            if (schemaData.type.split('.')[0] === 'list' && valueValue.length) {
-                                for (let i=0; i < errorsValue.length; i++) {
-                                    if (!errorsValue[i]) {
-                                        continue;
-                                    }
-                                    errors.push({field: [schemaData.key, i], message: errorsValue[i]}); 
-                                }
-                            } else {
+                            if (errorsValue.length > 0) {
                                 errors.push({field: [schemaData.key], message: errorsValue[0]}); 
                             }
+
+                            if (valueValue !== null && valueValue !== undefined) {
+                                entry[schemaData.key] = valueValue;
+                            }
                         }
-                        if (valueValue !== null && valueValue !== undefined) {
-                            entry[schemaData.key] = valueValue;
+                        if (schemaData.type === 'number_integer' || schemaData.type === 'number_decimal') {
+                            const [errorsValue, valueValue] = validateNumber(valueData, options);
+  
+                            if (errorsValue.length > 0) {
+                                errors.push({field: [schemaData.key], message: errorsValue[0]}); 
+                            }
+
+                            if (valueValue !== null && valueValue !== undefined) {
+                                entry[schemaData.key] = valueValue;
+                            }
+                        }
+                        if (schemaData.type === 'boolean') {
+                            const [errorsValue, valueValue] = validateString(valueData, options);
+
+                            if (errorsValue.length > 0) {
+                                errors.push({field: [schemaData.key], message: errorsValue[0]}); 
+                            }
+
+                            if (valueValue !== null && valueValue !== undefined) {
+                                entry[schemaData.key] = valueValue;
+                            }
+                        }
+                        if (schemaData.type === 'date_time') {
+                            const [errorsValue, valueValue] = validateDateTime(valueData, options);
+
+                            if (errorsValue.length > 0) {
+                                errors.push({field: [schemaData.key], message: errorsValue[0]}); 
+                            }
+
+                            if (valueValue !== null && valueValue !== undefined) {
+                                entry[schemaData.key] = valueValue;
+                            }
+                        }
+                        if (schemaData.type === 'date') {
+                            const [errorsValue, valueValue] = validateDate(valueData, options);
+
+                            if (errorsValue.length > 0) {
+                                errors.push({field: [schemaData.key], message: errorsValue[0]}); 
+                            }
+
+                            if (valueValue !== null && valueValue !== undefined) {
+                                entry[schemaData.key] = valueValue;
+                            }
+                        }
+                        if (schemaData.type === 'file_reference') {
+                            const [errorsValue, valueValue] = validateString(valueData, options);
+
+                            if (errorsValue.length > 0) {
+                                errors.push({field: [schemaData.key], message: errorsValue[0]}); 
+                            }
+
+                            if (valueValue !== null && valueValue !== undefined) {
+                                entry[schemaData.key] = valueValue;
+                            }
+                        }
+                        if (schemaData.type === 'list.single_line_text') {
+                            const {required, ...restOptions} = options;
+                            const [errorsValue, valueValue] = validateArray(valueData, {
+                                required,
+                                value: ['string', restOptions]
+                            });
+
+                            if (errorsValue.length > 0) {
+                                if (valueValue.length) {
+                                    for (let i=0; i < errorsValue.length; i++) {
+                                        if (!errorsValue[i]) {
+                                            continue;
+                                        }
+                                        errors.push({field: [schemaData.key, i], message: errorsValue[i]}); 
+                                    }
+                                } else {
+                                    errors.push({field: [schemaData.key], message: errorsValue[0]});
+                                }
+                            }
+
+                            if (valueValue !== null && valueValue !== undefined) {
+                                entry[schemaData.key] = valueValue;
+                            }
+                        }
+                        if (schemaData.type === 'list.number_integer' || schemaData.type === 'list.number_decimal') {
+                            const {required, ...restOptions} = options;
+                            const [errorsValue, valueValue] = validateArray(valueData, {
+                                required,
+                                value: ['number', restOptions]
+                            });
+
+                            if (errorsValue.length > 0) {
+                                if (valueValue.length) {
+                                    for (let i=0; i < errorsValue.length; i++) {
+                                        if (!errorsValue[i]) {
+                                            continue;
+                                        }
+                                        errors.push({field: [schemaData.key, i], message: errorsValue[i]}); 
+                                    }
+                                } else {
+                                    errors.push({field: [schemaData.key], message: errorsValue[0]});
+                                }
+                            }
+
+                            if (valueValue !== null && valueValue !== undefined) {
+                                entry[schemaData.key] = valueValue;
+                            }
+                        }
+                        if (schemaData.type === 'list.date_time') {
+                            const {required, ...restOptions} = options;
+                            const [errorsValue, valueValue] = validateArray(valueData, {
+                                required,
+                                value: ['datetime', restOptions]
+                            });
+
+                            if (errorsValue.length > 0) {
+                                if (valueValue.length) {
+                                    for (let i=0; i < errorsValue.length; i++) {
+                                        if (!errorsValue[i]) {
+                                            continue;
+                                        }
+                                        errors.push({field: [schemaData.key, i], message: errorsValue[i]}); 
+                                    }
+                                } else {
+                                    errors.push({field: [schemaData.key], message: errorsValue[0]});
+                                }
+                            }
+
+                            if (valueValue !== null && valueValue !== undefined) {
+                                entry[schemaData.key] = valueValue;
+                            }
+                        }
+                        if (schemaData.type === 'list.date') {
+                            const {required, ...restOptions} = options;
+                            const [errorsValue, valueValue] = validateArray(valueData, {
+                                required,
+                                value: ['date', restOptions]
+                            });
+
+                            if (errorsValue.length > 0) {
+                                if (valueValue.length) {
+                                    for (let i=0; i < errorsValue.length; i++) {
+                                        if (!errorsValue[i]) {
+                                            continue;
+                                        }
+                                        errors.push({field: [schemaData.key, i], message: errorsValue[i]}); 
+                                    }
+                                } else {
+                                    errors.push({field: [schemaData.key], message: errorsValue[0]});
+                                }
+                            }
+
+                            if (valueValue !== null && valueValue !== undefined) {
+                                entry[schemaData.key] = valueValue;
+                            }
+                        }
+                        if (schemaData.type === 'list.file_reference') {
+                            const {required, ...restOptions} = options;
+                            const [errorsValue, valueValue] = validateArray(valueData, {
+                                required,
+                                value: ['string', restOptions]
+                            });
+
+                            if (errorsValue.length > 0) {
+                                if (valueValue.length) {
+                                    for (let i=0; i < errorsValue.length; i++) {
+                                        if (!errorsValue[i]) {
+                                            continue;
+                                        }
+                                        errors.push({field: [schemaData.key, i], message: errorsValue[i]}); 
+                                    }
+                                } else {
+                                    errors.push({field: [schemaData.key], message: errorsValue[0]});
+                                }
+                            }
+
+                            if (valueValue !== null && valueValue !== undefined) {
+                                entry[schemaData.key] = valueValue;
+                            }
+                        }
+                        if (schemaData.type === 'money') {
+                            const {required, ...restOptions} = options;
+
+                            const [errorsValue, valueValue] = validateArray(valueData, {
+                                required: true,
+                                max: 3
+                            });
+                            if (errorsValue.length) {
+                                errors.push({field: [schemaData.key], message: errorsValue[0]});
+                            }
+
+                            valueValue.map((v:any, k:number) => {
+                                const {amount, currencyCode} = v;
+
+                                const [errorsAmount, valueAmount] = validateNumber(amount, {required});
+                                if (errorsAmount.length) {
+                                    errors.push({field: [schemaData.key, k, 'amount'], message: errorsAmount[0]});
+                                }
+                                const [errorsCurrencyCode, valueCurrencyCode] = validateString(currencyCode, {required});
+                                if (errorsCurrencyCode.length) {
+                                    errors.push({field: [schemaData.key, k, 'currencyCode'], message: errorsCurrencyCode[0]});
+                                }
+                            });
+
+                            if (valueValue !== null && valueValue !== undefined) {
+                                entry[schemaData.key] = valueValue;
+                            }
                         }
                     }
 
