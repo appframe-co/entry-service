@@ -249,25 +249,27 @@ export default async function CreateEntry(entryInput: TEntryInput): Promise<{ent
                             const {required, ...restOptions} = options;
 
                             const [errorsValue, valueValue] = validateArray(valueData, {
-                                required: true,
+                                required,
                                 max: 3
                             });
                             if (errorsValue.length) {
                                 errors.push({field: [schemaData.key], message: errorsValue[0]});
                             }
 
-                            valueValue.map((v:any, k:number) => {
-                                const {amount, currencyCode} = v;
-
-                                const [errorsAmount, valueAmount] = validateNumber(amount, {required});
-                                if (errorsAmount.length) {
-                                    errors.push({field: [schemaData.key, k, 'amount'], message: errorsAmount[0]});
-                                }
-                                const [errorsCurrencyCode, valueCurrencyCode] = validateString(currencyCode, {required});
-                                if (errorsCurrencyCode.length) {
-                                    errors.push({field: [schemaData.key, k, 'currencyCode'], message: errorsCurrencyCode[0]});
-                                }
-                            });
+                            if (valueValue) {
+                                valueValue.map((v:any, k:number) => {
+                                    const {amount, currencyCode} = v;
+    
+                                    const [errorsAmount, valueAmount] = validateNumber(amount, {required});
+                                    if (errorsAmount.length) {
+                                        errors.push({field: [schemaData.key, k, 'amount'], message: errorsAmount[0]});
+                                    }
+                                    const [errorsCurrencyCode, valueCurrencyCode] = validateString(currencyCode, {required});
+                                    if (errorsCurrencyCode.length) {
+                                        errors.push({field: [schemaData.key, k, 'currencyCode'], message: errorsCurrencyCode[0]});
+                                    }
+                                });
+                            }
 
                             if (valueValue !== null && valueValue !== undefined) {
                                 entry[schemaData.key] = valueValue;
