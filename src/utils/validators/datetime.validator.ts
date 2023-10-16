@@ -1,9 +1,4 @@
-type TOptions = {
-    required?: boolean | [boolean, string];
-    min?: Date | [Date, string];
-    max?: Date | [Date, string];
-    defaultValue?: any;
-}
+import { TOptions } from "@/types/types";
 
 function setOutputOption(v: any=[], msg:string='') {
     const res = Array.isArray(v) ? [v[0], v[1] ? v[1] : msg] : [v, msg];
@@ -13,9 +8,9 @@ function setOutputOption(v: any=[], msg:string='') {
     return res;
 }
 
-export function validateDateTime(value: string, options:TOptions={}, msg:any={}): [string[], string|null] {
+export function validateDateTime(value:string, options:TOptions={}, msg:any={}): [string[], string|null] {
     const {defaultValue=''} = options;
-    let outputValue:any = value
+    let outputValue:any = value;
     const errors = [];
 
     const require = setOutputOption(options.required, "Value can't be blank");

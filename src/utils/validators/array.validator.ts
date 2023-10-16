@@ -3,6 +3,7 @@ import { validateString } from "./string.validator";
 import { validateNumber } from "./number.validator";
 import { validateDate } from "./date.validator";
 import { validateDateTime } from "./datetime.validator";
+import { TOptions } from "@/types/types";
 
 function setOutputOption(v: any=[], msg:string='') {
     const res = Array.isArray(v) ? [v[0], v[1] ? v[1] : msg] : [v, msg];
@@ -12,8 +13,8 @@ function setOutputOption(v: any=[], msg:string='') {
     return res;
 }
 
-export function validateArray(value: any, options:any={}) {
-    const {value: valueOptions={}, defaultValue=[]} = options;
+export function validateArray(value: any, options:TOptions={}) {
+    const {value: valueOptions=[], defaultValue=[]} = options;
     let outputValue: any = produce(value, (draft: any) => draft);
     const errors = [];
 

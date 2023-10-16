@@ -1,11 +1,12 @@
 import Entry from '@/models/entry.model';
-import { TEntry, TEntryInput, TDoc, TErrorResponse, TStructure, TEntryModel } from '@/types/types';
+import { TEntry, TEntryInput, TErrorResponse, TStructure, TEntryModel, TOptions } from '@/types/types';
 
 import { validateString } from '@/utils/validators/string.validator';
 import { validateNumber } from '@/utils/validators/number.validator';
 import { validateArray } from '@/utils/validators/array.validator';
 import { validateDate } from '@/utils/validators/date.validator';
 import { validateDateTime } from '@/utils/validators/datetime.validator';
+import { checkUnique } from '@/utils/unique';
 
 
 function isErrorStructure(data: TErrorResponse|{structure: TStructure}): data is TErrorResponse {
@@ -54,13 +55,20 @@ export default async function CreateEntry(entryInput: TEntryInput): Promise<{ent
                     for (const schemaData of schemaDataBody) {
                         const valueData = data[schemaData.key];
 
-                        const options = schemaData.validations.reduce((acc: any, v) => {
+                        const options: TOptions = schemaData.validations.reduce((acc: any, v) => {
                             acc[v.code] = [v.value];
                             return acc;
                         }, {});
 
                         if (schemaData.type === 'single_line_text' || schemaData.type === 'multi_line_text') {
                             const [errorsValue, valueValue] = validateString(valueData, options);
+
+                            if (options.unique) {
+                                const isUniquie: boolean|null = await checkUnique(valueValue, {projectId, structureId, key: schemaData.key});
+                                if (isUniquie === false) {
+                                    errors.push({field: [schemaData.key], message: 'Value must be unique'}); 
+                                }
+                            }
 
                             if (errorsValue.length > 0) {
                                 errors.push({field: [schemaData.key], message: errorsValue[0]}); 

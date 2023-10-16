@@ -6,6 +6,7 @@ import { validateNumber } from '@/utils/validators/number.validator';
 import { validateArray } from '@/utils/validators/array.validator';
 import { validateDate } from '@/utils/validators/date.validator';
 import { validateDateTime } from '@/utils/validators/datetime.validator';
+import { checkUnique } from '@/utils/unique';
 
 function isErrorStructure(data: TErrorResponse|{structure: TStructure}): data is TErrorResponse {
     return (data as TErrorResponse).error !== undefined;
@@ -48,11 +49,11 @@ export default async function UpdateEntry(entryInput: TEntryInput): Promise<{ent
                 const errors: any = [];
                 const output: any = {};
 
-                const {schemaDataBody} = payload;
+                const {schemaDataBody, id: entryId} = payload;
 
                 data = data ?? [];
 
-                output.entry = await (async function() {
+                output.entry = await (async function(entryId) {
                     const entry: any = {};
 
                     for (const schemaData of schemaDataBody) {
@@ -65,6 +66,13 @@ export default async function UpdateEntry(entryInput: TEntryInput): Promise<{ent
 
                         if (schemaData.type === 'single_line_text' || schemaData.type === 'multi_line_text') {
                             const [errorsValue, valueValue] = validateString(valueData, options);
+
+                            if (options.unique) {
+                                const isUniquie: boolean|null = await checkUnique(valueValue, {entryId, projectId, structureId, key: schemaData.key});
+                                if (isUniquie === false) {
+                                    errors.push({field: [schemaData.key], message: 'Value must be unique'}); 
+                                }
+                            }
 
                             if (errorsValue.length > 0) {
                                 errors.push({field: [schemaData.key], message: errorsValue[0]}); 
@@ -280,7 +288,7 @@ export default async function UpdateEntry(entryInput: TEntryInput): Promise<{ent
                     }
 
                     return entry;
-                }());
+                }(entryId));
 
                 return {errors, data: output};
             } catch (e) {
@@ -291,7 +299,7 @@ export default async function UpdateEntry(entryInput: TEntryInput): Promise<{ent
 
                 return {errors: [{message}]};
             }
-        })(docBody, {schemaDataBody});
+        })(docBody, {schemaDataBody, id});
         if (Object.keys(errorsForm).length > 0) {
             return {
                 entry: null,

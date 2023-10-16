@@ -1,9 +1,4 @@
-type TOptions = {
-    required?: boolean | [boolean, string];
-    min?: Date | [Date, string];
-    max?: Date | [Date, string];
-    defaultValue?: any;
-}
+import { TOptions } from "@/types/types";
 
 function setOutputOption(v: any=[], msg:string='') {
     const res = Array.isArray(v) ? [v[0], v[1] ? v[1] : msg] : [v, msg];

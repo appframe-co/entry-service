@@ -1,3 +1,5 @@
+import { TOptions } from "@/types/types";
+
 function setOutputOption(v: any=[], msg:string='') {
     const res = Array.isArray(v) ? [v[0], v[1] ? v[1] : msg] : [v, msg];
 
@@ -6,7 +8,7 @@ function setOutputOption(v: any=[], msg:string='') {
     return res;
 }
 
-export function validateBoolean(value:string, options:any={}): [string[], number|null] {
+export function validateBoolean(value:string, options:TOptions={}): [string[], number|null] {
     const {defaultValue=false} = options;
     let outputValue: any = value;
     const errors = [];

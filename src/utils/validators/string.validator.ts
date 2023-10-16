@@ -15,7 +15,6 @@ export function validateString(value: string, options:any={}, msg:any={}): [stri
     const max = setOutputOption(options.max, 'Value has a maximum of #value#.');
     const min = setOutputOption(options.min, 'Value has a minimum of #value#.');
     const regExp = setOutputOption(options.regex, 'Value has a invalid regExp');
-    const email = setOutputOption(options.email, 'invalid email');
     const enumList = setOutputOption(options.choices, 'Value does not exist in provided choices: [#value#].');
 
     try {

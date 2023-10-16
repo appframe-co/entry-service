@@ -81,3 +81,18 @@ export type TParameters = {
   sinceId?: string;
   ids?: string;
 }
+
+type TMinNum = number | [number, string];
+type TMinDate = Date | [Date, string];
+
+export type TOptions = {
+  required?: boolean | [boolean, string];
+  unique?: boolean | [boolean, string];
+  max?: TMinNum|TMinDate;
+  min?: TMinNum|TMinDate;
+  regex?: string | [string, string];
+  choices?: string[]|number[];
+  defaultValue?: any;
+  value?: [string, any];
+  max_precision?: number;
+}

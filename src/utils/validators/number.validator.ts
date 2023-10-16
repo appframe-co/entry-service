@@ -1,3 +1,5 @@
+import { TOptions } from "@/types/types";
+
 function setOutputOption(v: any=[], msg:string='') {
     const res = Array.isArray(v) ? [v[0], v[1] ? v[1] : msg] : [v, msg];
 
@@ -6,7 +8,7 @@ function setOutputOption(v: any=[], msg:string='') {
     return res;
 }
 
-export function validateNumber(value: string, options:any={}, msg:any={}): [string[], number|null] {
+export function validateNumber(value: string, options:TOptions={}, msg:any={}): [string[], number|null] {
     const {defaultValue=0} = options;
     let outputValue: any = value;
     const errors = [];
@@ -14,8 +16,6 @@ export function validateNumber(value: string, options:any={}, msg:any={}): [stri
     const require = setOutputOption(options.required, "Value can't be blank");
     const max = setOutputOption(options.max, 'Value has a maximum of #value#.');
     const min = setOutputOption(options.min, 'Value has a minimum of #value#.');
-    const regExp = setOutputOption(options.regex, 'Value has a invalid regExp');
-    const enumList = setOutputOption(options.enumList, 'is not included in the list');
     const maxPrecision = setOutputOption(options.max_precision, 'Value can\'t exceed #value# decimal places.');
 
     try {
@@ -51,17 +51,7 @@ export function validateNumber(value: string, options:any={}, msg:any={}): [stri
                 errors.push(maxPrecision[1]);
             }
         }
-        if (regExp[0]) {
-            const regex = new RegExp(regExp[0]).test(outputValue);
-            if (!regex) {
-                errors.push(regExp[1]);
-            }
-        }
-        if (enumList[0] && !enumList[0].includes(outputValue)) {
-            errors.push(enumList[1]);
-        }
     } catch (e) {
-        console.log(e)
         errors.push("should be number");
     } finally {
         return [errors, outputValue];
