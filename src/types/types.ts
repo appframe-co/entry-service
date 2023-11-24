@@ -36,11 +36,11 @@ export type TEntry = {
 }
 
 export type TEntryInput = {
-	id?: string, 
+	id?: string;
 	userId: string; 
 	projectId: string;
 	structureId: string;
-	doc?: TDoc
+	doc?: TDoc;
 }
 
 export type TFile = {
@@ -95,4 +95,44 @@ export type TOptions = {
   defaultValue?: any;
   value?: [string, any];
   max_precision?: number;
+}
+
+export type TValueTranslation = {[key: string]: any}
+
+export type TTranslationModel = {
+  id: string;
+  userId: string; 
+  projectId: string;
+  structureId: string;
+  subjectId: string;
+  subject: string;
+  key: string;
+  value: TValueTranslation;
+  lang: string;
+  createdAt: string;
+}
+
+export type TTranslation = {
+  id: string;
+	userId: string; 
+  projectId: string;
+  structureId: string;
+  subjectId: string;
+  subject: string;
+  key: string;
+  value: TValueTranslation;
+  lang: string;
+  createdAt?: string;
+}
+
+export type TTranslationInput = {
+  id?: string;
+	userId: string; 
+  projectId: string;
+  structureId: string;
+  subjectId: string;
+  subject: string;
+  key: string;
+  value: TValueTranslation;
+  lang: string;
 }

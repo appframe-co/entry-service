@@ -8,15 +8,15 @@ DocSchema.set('toObject', { virtuals: true });
 DocSchema.set('toJSON', { virtuals: true });
 
 const EntriesSchema: Schema = new Schema({
+    userId: {
+        type: ObjectId,
+        require: true
+    },
     projectId: {
         type: ObjectId,
         require: true
     },
     structureId: {
-        type: ObjectId,
-        require: true
-    },
-    userId: {
         type: ObjectId,
         require: true
     },

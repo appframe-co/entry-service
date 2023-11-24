@@ -1,3 +1,5 @@
+import slugify from 'slugify';
+
 import Entry from '@/models/entry.model';
 import { TEntry, TEntryInput, TDoc, TErrorResponse, TStructure, TEntryModel } from '@/types/types';
 
@@ -67,7 +69,7 @@ export default async function UpdateEntry(entryInput: TEntryInput): Promise<{ent
                         if (schemaData.type === 'single_line_text' || schemaData.type === 'multi_line_text') {
                             const [errorsValue, valueValue] = validateString(valueData, options);
 
-                            if (options.unique) {
+                            if (Array.isArray(options.unique) ? options.unique[0] : options.unique) {
                                 const isUniquie: boolean|null = await checkUnique(valueValue, {entryId, projectId, structureId, key: schemaData.key});
                                 if (isUniquie === false) {
                                     errors.push({field: [schemaData.key], message: 'Value must be unique'}); 
@@ -280,6 +282,30 @@ export default async function UpdateEntry(entryInput: TEntryInput): Promise<{ent
                                     errors.push({field: [schemaData.key, k, 'currencyCode'], message: errorsCurrencyCode[0]});
                                 }
                             });
+
+                            if (valueValue !== null && valueValue !== undefined) {
+                                entry[schemaData.key] = valueValue;
+                            }
+                        }
+                        if (schemaData.type === 'url_handle') {
+                            const brickRef = schemaData.validations.find(v => v.code === 'brick_reference');
+                            const valueOfBrickRef: string|null = brickRef ? data[brickRef.value] : null;
+
+                            let handle: string = valueData;
+                            if (!handle && valueOfBrickRef) {
+                                handle = slugify(valueOfBrickRef, {lower: true});
+                            }
+
+                            const [errorsValue, valueValue] = validateString(handle, {required: true, ...options});
+
+                            const isUniquie: boolean|null = await checkUnique(valueValue, {entryId, projectId, structureId, key: schemaData.key});
+                            if (isUniquie === false) {
+                                errors.push({field: [schemaData.key], message: 'Value must be unique', value: valueValue}); 
+                            }
+
+                            if (errorsValue.length > 0) {
+                                errors.push({field: [schemaData.key], message: errorsValue[0]}); 
+                            }
 
                             if (valueValue !== null && valueValue !== undefined) {
                                 entry[schemaData.key] = valueValue;
