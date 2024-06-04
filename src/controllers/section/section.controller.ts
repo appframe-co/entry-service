@@ -1,17 +1,24 @@
-import Entry from '@/models/entry.model';
-import {TEntry, TEntryInput, TErrorResponse, TStructure, TDoc, TFile, TEntryModel} from '@/types/types';
+import Section from '@/models/section.model';
+import {TErrorResponse, TStructure, TDoc, TFile, TSection, TSectionModel} from '@/types/types';
 
 function isErrorStructure(data: TErrorResponse|{structure: TStructure}): data is TErrorResponse {
     return (data as TErrorResponse).error !== undefined;
 }
 
-export default async function EntryController(entryInput: TEntryInput): Promise<TErrorResponse | {entry: TEntry, files: TFile[]}> {
-    try {
-        const {id, projectId, userId, structureId} = entryInput;
+type TSectionInput = {
+    userId: string;
+    projectId: string; 
+    structureId: string; 
+    id: string;
+}
 
-        const entry: TEntryModel|null = await Entry.findOne({createdBy: userId, projectId, _id: id});
-        if (!entry) {
-            throw new Error('invalid entry');
+export default async function SectionController(sectionInput: TSectionInput): Promise<TErrorResponse | {section: TSection, files: TFile[]}> {
+    try {
+        const {id, projectId, userId, structureId} = sectionInput;
+
+        const section: TSectionModel|null = await Section.findOne({createdBy: userId, projectId, _id: id});
+        if (!section) {
+            throw new Error('invalid section');
         }
 
         // GET structure
@@ -28,18 +35,18 @@ export default async function EntryController(entryInput: TEntryInput): Promise<
 
         const {structure} = structureFetch;
 
-        // compare entry by structure
-        const keys = structure.bricks.map(b => b.key);
+        // compare section by structure
+        const keys = structure.sections.bricks.map(b => b.key);
         const doc: TDoc = {};
-        if (entry.doc) {
+        if (section.doc) {
             keys.forEach(key => {
-                doc[key] = entry.doc.hasOwnProperty(key) ? entry.doc[key] : null;
+                doc[key] = section.doc.hasOwnProperty(key) ? section.doc[key] : null;
             });
         }
 
         let fileIds: string[] = [];
         const types = ['file_reference', 'list.file_reference'];
-        const keyListFile = structure.bricks.filter(b => types.includes(b.type)).map(b => b.key);
+        const keyListFile = structure.sections.bricks.filter(b => types.includes(b.type)).map(b => b.key);
         for (const key of keyListFile) {
             if (!doc[key]) {
                 continue;
@@ -63,17 +70,17 @@ export default async function EntryController(entryInput: TEntryInput): Promise<
         const {files}: {files: TFile[]} = await resFetchFiles.json();
 
         const output = {
-            id: entry.id,
-            projectId: entry.projectId,
-            structureId: entry.structureId,
-            createdAt: entry.createdAt,
-            updatedAt: entry.updatedAt,
-            createdBy: entry.createdBy,
-            updatedBy: entry.updatedBy,
-            doc,
-            sectionIds: entry.sectionIds
+            id: section.id,
+            projectId: section.projectId,
+            structureId: section.structureId,
+            parentId: section.parentId,
+            createdAt: section.createdAt,
+            updatedAt: section.updatedAt,
+            createdBy: section.createdBy,
+            updatedBy: section.updatedBy,
+            doc
         };
-        return {entry: output, files};
+        return {section: output, files};
     } catch (error) {
         throw error;
     }

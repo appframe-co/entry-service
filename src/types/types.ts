@@ -22,12 +22,39 @@ export type TEntryModel = {
   createdBy: string;
   updatedBy: string;
   doc: TDoc;
+  sectionIds: string[];
+}
+
+export type TSectionModel = {
+  id: string;
+  projectId: string;
+  userId: string;
+  structureId: string;
+  parentId: string;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+  updatedBy: string;
+  doc: TDoc;
 }
 
 export type TEntry = {
   id: string;
   projectId: string;
   structureId: string;
+  createdAt?: string;
+  updatedAt?: string;
+  createdBy: string;
+  updatedBy: string;
+  doc: TDoc;
+  sectionIds: string[];
+}
+
+export type TSection = {
+  id: string;
+  projectId: string;
+  structureId: string;
+  parentId: string|null;
   createdAt?: string;
   updatedAt?: string;
   createdBy: string;
@@ -40,6 +67,16 @@ export type TEntryInput = {
 	userId: string; 
 	projectId: string;
 	structureId: string;
+	doc?: TDoc;
+  sectionIds?: string[]|string;
+}
+
+export type TSectionInput = {
+	id?: string;
+	userId: string; 
+	projectId: string;
+	structureId: string;
+  parentId?: string;
 	doc?: TDoc;
 }
 
@@ -55,11 +92,29 @@ export type TFile = {
   src: string;
 }
 
+export type TTranslations = {
+  enabled: boolean;
+}
+export type TSections = {
+  enabled: boolean;
+  bricks: TBrick[];
+}
+export type TNotifications = {
+  new: {
+      alert: {
+        enabled: boolean;
+        message: string;
+      }
+  }
+}
 export type TStructure = {
   id: string;
   name: string;
   code: string;
   bricks: TBrick[];
+  sections: TSections;
+  translations: TTranslations;
+  notifications: TNotifications;
 }
 
 type TBrick = {
@@ -80,6 +135,8 @@ export type TParameters = {
   page?: number;
   sinceId?: string;
   ids?: string;
+  section_id?: string;
+  parent_id?: string;
 }
 
 type TMinNum = number | [number, string];

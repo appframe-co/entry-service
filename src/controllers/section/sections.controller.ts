@@ -1,13 +1,26 @@
-import Entry from '@/models/entry.model';
-import {TEntry, TEntryInput, TDoc, TErrorResponse, TFile, TStructure, TEntryModel, TParameters} from '@/types/types';
+import Section from '@/models/section.model';
+import {TDoc, TErrorResponse, TFile, TStructure, TParameters, TSection, TSectionModel} from '@/types/types';
 
 function isErrorStructure(data: TErrorResponse|{structure: TStructure}): data is TErrorResponse {
     return (data as TErrorResponse).error !== undefined;
 }
 
-export default async function Entries(entryInput: TEntryInput, parameters: TParameters = {}): Promise<TErrorResponse | {entries: TEntry[], names: string[], keys: string[]}>{
+type TSectionInput = {
+    userId: string;
+    projectId: string; 
+    structureId: string;
+}
+
+type TProps = {
+    sections: TSection[];
+    names: string[];
+    keys: string[];
+    parent: TSection|null;
+}
+
+export default async function Sections(sectionInput: TSectionInput, parameters: TParameters = {}): Promise<TErrorResponse | TProps>{
     try {
-        const {userId, projectId, structureId} = entryInput;
+        const {userId, projectId, structureId} = sectionInput;
 
         if (!userId || !projectId || !structureId) {
             throw new Error('userId & projectId & structureId query required');
@@ -16,7 +29,7 @@ export default async function Entries(entryInput: TEntryInput, parameters: TPara
         const defaultLimit = 10;
 
         const filter: any = {createdBy: userId, projectId, structureId};
-        let {sinceId, limit=defaultLimit, page=1, ids, section_id: sectionId} = parameters;
+        let {sinceId, limit=defaultLimit, page=1, ids, parent_id=null} = parameters;
 
         if (limit > 250) {
             limit = defaultLimit;
@@ -27,15 +40,13 @@ export default async function Entries(entryInput: TEntryInput, parameters: TPara
         if (ids) {
             filter['_id'] = {$in: ids.split(',')};
         }
-        if (sectionId) {
-            filter['sectionIds'] = {$in: sectionId};
-        }
+        filter['parentId'] = parent_id;
 
         const skip = (page - 1) * limit;
 
-        const entries: TEntryModel[] = await Entry.find(filter).skip(skip).limit(limit);
-        if (!entries) {
-            throw new Error('invalid entries');
+        const sections: TSectionModel[] = await Section.find(filter).skip(skip).limit(limit);
+        if (!sections) {
+            throw new Error('invalid sections');
         }
 
         // GET structure
@@ -52,26 +63,26 @@ export default async function Entries(entryInput: TEntryInput, parameters: TPara
 
         const {structure} = structureFetch;
 
-        // COMPARE entries by structure
-        const names = structure.bricks.map(b => b.name);
-        const keys = structure.bricks.map(b => b.key);
-        const result = entries.map(entry => {
+        // COMPARE sections by structure
+        const names = structure.sections.bricks.map(b => b.name);
+        const keys = structure.sections.bricks.map(b => b.key);
+        const result = sections.map(section => {
             const doc = keys.reduce((acc: TDoc, key: string) => {
-                acc[key] = entry.doc.hasOwnProperty(key) ? entry.doc[key] : null
+                acc[key] = section.doc.hasOwnProperty(key) ? section.doc[key] : null
 
                 return acc;
             }, {});
 
             return {
-                id: entry.id,
-                projectId: entry.projectId,
-                structureId: entry.structureId,
-                createdAt: entry.createdAt,
-                updatedAt: entry.updatedAt,
-                createdBy: entry.createdBy,
-                updatedBy: entry.updatedBy,
-                doc,
-                sectionIds: entry.sectionIds
+                id: section.id,
+                projectId: section.projectId,
+                structureId: section.structureId,
+                parentId: section.parentId,
+                createdAt: section.createdAt,
+                updatedAt: section.updatedAt,
+                createdBy: section.createdBy,
+                updatedBy: section.updatedBy,
+                doc
             };
         });
 
@@ -93,7 +104,7 @@ export default async function Entries(entryInput: TEntryInput, parameters: TPara
             }
         }
 
-        // MERGE files with entry
+        // MERGE files with section
         const resFetchFiles = await fetch(
             `${process.env.URL_FILE_SERVICE}/api/get_files_by_ids?projectId=${projectId}`, {
             method: 'POST',
@@ -119,7 +130,36 @@ export default async function Entries(entryInput: TEntryInput, parameters: TPara
             }
         }
 
-        return {entries: result, names, keys};
+        const parent: TSection|null = await (async function() {
+            try {
+                const section: TSectionModel|null = await Section.findOne({createdBy: userId, projectId, structureId, _id: parent_id});
+                if (!section) {
+                    return null;
+                }
+    
+                const doc = keys.reduce((acc: TDoc, key: string) => {
+                    acc[key] = section.doc.hasOwnProperty(key) ? section.doc[key] : null
+        
+                    return acc;
+                }, {});
+        
+                return {
+                    id: section.id,
+                    projectId: section.projectId,
+                    structureId: section.structureId,
+                    parentId: section.parentId,
+                    createdAt: section.createdAt,
+                    updatedAt: section.updatedAt,
+                    createdBy: section.createdBy,
+                    updatedBy: section.updatedBy,
+                    doc
+                };
+            } catch(e) {
+                return null;
+            }
+        })();
+
+        return {sections: result, names, keys, parent};
     } catch (error) {
         throw error;
     }

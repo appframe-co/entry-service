@@ -1,7 +1,7 @@
 import slugify from 'slugify';
 
-import Entry from '@/models/entry.model';
-import { TEntry, TEntryInput, TErrorResponse, TStructure, TEntryModel, TOptions } from '@/types/types';
+import Section from '@/models/section.model';
+import { TErrorResponse, TStructure, TOptions, TSectionInput, TSection, TSectionModel } from '@/types/types';
 
 import { validateString } from '@/utils/validators/string.validator';
 import { validateNumber } from '@/utils/validators/number.validator';
@@ -14,13 +14,13 @@ import { checkUnique } from '@/utils/unique';
 function isErrorStructure(data: TErrorResponse|{structure: TStructure}): data is TErrorResponse {
     return (data as TErrorResponse).error !== undefined;
 }
-function isErrorEntry(data: null|TEntry): data is null {
+function isErrorSection(data: null|TSection): data is null {
     return (data as null) === null;
 }
 
-export default async function CreateEntry(entryInput: TEntryInput): Promise<{entry: TEntry|null, userErrors: any}> {
+export default async function CreateSection(sectionInput: TSectionInput): Promise<{section: TSection|null, userErrors: any}> {
     try {
-        const {projectId, structureId, userId, ...entryBody} = entryInput;
+        const {projectId, structureId, userId, parentId, ...sectionBody} = sectionInput;
 
         if (!projectId || !structureId || !userId) {
             throw new Error('projectId & structureId & userId required');
@@ -39,8 +39,8 @@ export default async function CreateEntry(entryInput: TEntryInput): Promise<{ent
         }
         const {structure} = structureFetch;
 
-        // compare entry by structure
-        const schemaDataBody = structure.bricks.map(b => ({key: b.key, type: b.type, validations: b.validations}));
+        // compare section by structure
+        const schemaDataBody = structure.sections.bricks.map(b => ({key: b.key, type: b.type, validations: b.validations}));
 
         const {errors: errorsForm, data: validatedData} = await (async (data, payload) => {
             try {
@@ -48,40 +48,18 @@ export default async function CreateEntry(entryInput: TEntryInput): Promise<{ent
                 const output: any = {};
 
                 const {schemaDataBody} = payload;
+    
+                output.section = await (async function() {
+                    const section: any = {};
 
-                output.entry = await (async function() {
-                    const entry: any = {};
-
-                    if (data.hasOwnProperty('sectionIds')) {
-                        const {sectionIds} = data;
-                        if (sectionIds !== undefined && sectionIds !== null) {
-                            let _sectionIds = !Array.isArray(sectionIds) ? sectionIds.split(',') : sectionIds;
-                            const [errorsSectionIds, valueSectionIds] = validateArray(_sectionIds, {
-                                value: ['string', {}]
-                            });
-                            if (errorsSectionIds.length > 0) {
-                                if (errorsSectionIds.length) {
-                                    for (let i=0; i < errorsSectionIds.length; i++) {
-                                        if (!errorsSectionIds[i]) {
-                                            continue;
-                                        }
-                                        errors.push({field: ['sectionIds', i], message: errorsSectionIds[i]}); 
-                                    }
-                                } else {
-                                    errors.push({field: ['sectionIds'], message: errorsSectionIds[0]});
-                                }
-                            }
-                            entry.sectionIds = valueSectionIds;
-                        }
-                    }
                     if (data.hasOwnProperty('doc')) {
+                        section['doc'] = {};
+
                         const {doc} = data;
                         if (doc !== undefined && doc !== null) {
-                            entry['doc'] = {};
-
                             for (const schemaData of schemaDataBody) {
                                 const valueData = doc[schemaData.key];
-        
+
                                 const options: TOptions = schemaData.validations.reduce((acc: any, v) => {
                                     acc[v.code] = [v.value];
                                     return acc;
@@ -91,7 +69,7 @@ export default async function CreateEntry(entryInput: TEntryInput): Promise<{ent
                                     const [errorsValue, valueValue] = validateString(valueData, options);
         
                                     if (Array.isArray(options.unique) ? options.unique[0] : options.unique) {
-                                        const isUniquie: boolean|null = await checkUnique(valueValue, {projectId, structureId, subject: 'entry', key: 'doc.'+schemaData.key});
+                                        const isUniquie: boolean|null = await checkUnique(valueValue, {projectId, structureId, subject: 'section', key: 'doc.'+schemaData.key});
                                         if (isUniquie === false) {
                                             errors.push({field: ['doc', schemaData.key], message: 'Value must be unique'}); 
                                         }
@@ -102,7 +80,7 @@ export default async function CreateEntry(entryInput: TEntryInput): Promise<{ent
                                     }
         
                                     if (valueValue !== null && valueValue !== undefined) {
-                                        entry['doc'][schemaData.key] = valueValue;
+                                        section['doc'][schemaData.key] = valueValue;
                                     }
                                 }
                                 if (schemaData.type === 'number_integer' || schemaData.type === 'number_decimal') {
@@ -113,7 +91,7 @@ export default async function CreateEntry(entryInput: TEntryInput): Promise<{ent
                                     }
         
                                     if (valueValue !== null && valueValue !== undefined) {
-                                        entry['doc'][schemaData.key] = valueValue;
+                                        section['doc'][schemaData.key] = valueValue;
                                     }
                                 }
                                 if (schemaData.type === 'boolean') {
@@ -124,7 +102,7 @@ export default async function CreateEntry(entryInput: TEntryInput): Promise<{ent
                                     }
         
                                     if (valueValue !== null && valueValue !== undefined) {
-                                        entry['doc'][schemaData.key] = valueValue;
+                                        section['doc'][schemaData.key] = valueValue;
                                     }
                                 }
                                 if (schemaData.type === 'date_time') {
@@ -135,7 +113,7 @@ export default async function CreateEntry(entryInput: TEntryInput): Promise<{ent
                                     }
         
                                     if (valueValue !== null && valueValue !== undefined) {
-                                        entry['doc'][schemaData.key] = valueValue;
+                                        section['doc'][schemaData.key] = valueValue;
                                     }
                                 }
                                 if (schemaData.type === 'date') {
@@ -146,7 +124,7 @@ export default async function CreateEntry(entryInput: TEntryInput): Promise<{ent
                                     }
         
                                     if (valueValue !== null && valueValue !== undefined) {
-                                        entry['doc'][schemaData.key] = valueValue;
+                                        section['doc'][schemaData.key] = valueValue;
                                     }
                                 }
                                 if (schemaData.type === 'file_reference') {
@@ -157,7 +135,7 @@ export default async function CreateEntry(entryInput: TEntryInput): Promise<{ent
                                     }
         
                                     if (valueValue !== null && valueValue !== undefined) {
-                                        entry['doc'][schemaData.key] = valueValue;
+                                        section['doc'][schemaData.key] = valueValue;
                                     }
                                 }
                                 if (schemaData.type === 'list.single_line_text') {
@@ -181,7 +159,7 @@ export default async function CreateEntry(entryInput: TEntryInput): Promise<{ent
                                     }
         
                                     if (valueValue !== null && valueValue !== undefined) {
-                                        entry['doc'][schemaData.key] = valueValue;
+                                        section['doc'][schemaData.key] = valueValue;
                                     }
                                 }
                                 if (schemaData.type === 'list.number_integer' || schemaData.type === 'list.number_decimal') {
@@ -205,7 +183,7 @@ export default async function CreateEntry(entryInput: TEntryInput): Promise<{ent
                                     }
         
                                     if (valueValue !== null && valueValue !== undefined) {
-                                        entry['doc'][schemaData.key] = valueValue;
+                                        section['doc'][schemaData.key] = valueValue;
                                     }
                                 }
                                 if (schemaData.type === 'list.date_time') {
@@ -229,7 +207,7 @@ export default async function CreateEntry(entryInput: TEntryInput): Promise<{ent
                                     }
         
                                     if (valueValue !== null && valueValue !== undefined) {
-                                        entry['doc'][schemaData.key] = valueValue;
+                                        section['doc'][schemaData.key] = valueValue;
                                     }
                                 }
                                 if (schemaData.type === 'list.date') {
@@ -253,7 +231,7 @@ export default async function CreateEntry(entryInput: TEntryInput): Promise<{ent
                                     }
         
                                     if (valueValue !== null && valueValue !== undefined) {
-                                        entry['doc'][schemaData.key] = valueValue;
+                                        section['doc'][schemaData.key] = valueValue;
                                     }
                                 }
                                 if (schemaData.type === 'list.file_reference') {
@@ -277,7 +255,7 @@ export default async function CreateEntry(entryInput: TEntryInput): Promise<{ent
                                     }
         
                                     if (valueValue !== null && valueValue !== undefined) {
-                                        entry['doc'][schemaData.key] = valueValue;
+                                        section['doc'][schemaData.key] = valueValue;
                                     }
                                 }
                                 if (schemaData.type === 'money') {
@@ -307,7 +285,7 @@ export default async function CreateEntry(entryInput: TEntryInput): Promise<{ent
                                     }
         
                                     if (valueValue !== null && valueValue !== undefined) {
-                                        entry['doc'][schemaData.key] = valueValue;
+                                        section['doc'][schemaData.key] = valueValue;
                                     }
                                 }
                                 if (schemaData.type === 'url_handle') {
@@ -321,7 +299,7 @@ export default async function CreateEntry(entryInput: TEntryInput): Promise<{ent
         
                                     const [errorsValue, valueValue] = validateString(handle, {required: true, ...options});
         
-                                    const isUniquie: boolean|null = await checkUnique(valueValue, {projectId, structureId, subject: 'entry', key: 'doc.'+schemaData.key});
+                                    const isUniquie: boolean|null = await checkUnique(valueValue, {projectId, structureId, subject: 'section', key: 'doc.'+schemaData.key});
                                     if (isUniquie === false) {
                                         errors.push({field: ['doc', schemaData.key], message: 'Value must be unique', value: valueValue}); 
                                     }
@@ -331,14 +309,14 @@ export default async function CreateEntry(entryInput: TEntryInput): Promise<{ent
                                     }
         
                                     if (valueValue !== null && valueValue !== undefined) {
-                                        entry['doc'][schemaData.key] = valueValue;
+                                        section['doc'][schemaData.key] = valueValue;
                                     }
                                 }
                             }
                         }
                     }
 
-                    return entry;
+                    return section;
                 }());
 
                 return {errors, data: output};
@@ -350,10 +328,10 @@ export default async function CreateEntry(entryInput: TEntryInput): Promise<{ent
 
                 return {errors: [{message}]};
             }
-        })(entryBody, {schemaDataBody});
+        })(sectionBody, {schemaDataBody});
         if (Object.keys(errorsForm).length > 0) {
             return {
-                entry: null,
+                section: null,
                 userErrors: errorsForm
             };
         }
@@ -363,13 +341,20 @@ export default async function CreateEntry(entryInput: TEntryInput): Promise<{ent
                 const errors: any = [];
                 const output: any = {};
 
-                const entry: TEntryModel|null = await Entry.create({...data.entry, projectId, structureId, userId, createdBy: userId, updatedBy: userId});
-                if (isErrorEntry(entry)) {
-                    throw new Error('Failed to add entry');
+                const parentSection: TSectionModel|null = await Section.findOne({_id: parentId, projectId, structureId, userId});
+                const pId = parentSection && parentSection.id;
+
+                const section: TSectionModel|null = await Section.create({
+                    ...data.section, parentId: pId, 
+                    projectId, structureId, userId, 
+                    createdBy: userId, updatedBy: userId
+                });
+                if (isErrorSection(section)) {
+                    throw new Error('Failed to add section');
                 }
 
-                const {id: entryId} = entry;
-                output.entryId = entryId;
+                const {id: sectionId} = section;
+                output.sectionId = sectionId;
 
                 if (errors.length > 0) {
                     return {errors};
@@ -386,32 +371,32 @@ export default async function CreateEntry(entryInput: TEntryInput): Promise<{ent
         })(validatedData);
         if (Object.keys(errorsDB).length > 0) {
             return {
-                entry: null,
+                section: null,
                 userErrors: errorsDB
             }
         }
 
-        const {errors: errorsRes, data: obtainedData} = await (async (data): Promise<{errors: any, data: {entry: TEntry|null}}> => {
+        const {errors: errorsRes, data: obtainedData} = await (async (data): Promise<{errors: any, data: {section: TSection|null}}> => {
             try {
                 const errors: any = [];
-                let output: {entry: TEntry|null} = {entry: null};
+                let output: {section: TSection|null} = {section: null};
 
-                const {entryId} = data;
+                const {sectionId} = data;
 
-                const entry: TEntryModel|null = await Entry.findOne({_id: entryId, projectId, structureId, userId});
-                if (isErrorEntry(entry)) {
-                    output.entry = null;
+                const section: TSectionModel|null = await Section.findOne({_id: sectionId, projectId, structureId, userId});
+                if (isErrorSection(section)) {
+                    output.section = null;
                 } else {
-                    output.entry = {
-                        id: entry.id,
-                        projectId: entry.projectId,
-                        structureId: entry.structureId,
-                        createdAt: entry.createdAt,
-                        updatedAt: entry.updatedAt,
-                        createdBy: entry.createdBy,
-                        updatedBy: entry.updatedBy,
-                        doc: entry.doc,
-                        sectionIds: entry.sectionIds
+                    output.section = {
+                        id: section.id,
+                        projectId: section.projectId,
+                        structureId: section.structureId,
+                        parentId: section.parentId,
+                        createdAt: section.createdAt,
+                        updatedAt: section.updatedAt,
+                        createdBy: section.createdBy,
+                        updatedBy: section.updatedBy,
+                        doc: section.doc
                     }
                 }
 
@@ -421,18 +406,18 @@ export default async function CreateEntry(entryInput: TEntryInput): Promise<{ent
                 if (e instanceof Error) {
                     message = e.message;
                 }
-                return {errors: [{message}], data: {entry: null}};
+                return {errors: [{message}], data: {section: null}};
             }
         })(savedData);
         if (Object.keys(errorsRes).length > 0) {
             return {
-                entry: null,
+                section: null,
                 userErrors: errorsRes
             }
         }
 
         return {
-            entry: obtainedData.entry,
+            section: obtainedData.section,
             userErrors: []
         };
     } catch (e) {
@@ -441,7 +426,7 @@ export default async function CreateEntry(entryInput: TEntryInput): Promise<{ent
             message = e.message;
         }
         return {
-            entry: null,
+            section: null,
             userErrors: [{message}]
         };
     }

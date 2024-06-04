@@ -1,7 +1,7 @@
 import slugify from 'slugify';
 
 import Entry from '@/models/entry.model';
-import { TEntry, TEntryInput, TDoc, TErrorResponse, TStructure, TEntryModel } from '@/types/types';
+import { TEntry, TEntryInput, TErrorResponse, TStructure, TEntryModel } from '@/types/types';
 
 import { validateString } from '@/utils/validators/string.validator';
 import { validateNumber } from '@/utils/validators/number.validator';
@@ -19,7 +19,7 @@ function isErrorEntry(data: null|TEntry): data is null {
 
 export default async function UpdateEntry(entryInput: TEntryInput): Promise<{entry: TEntry|null, userErrors: any}> {
     try {
-        const {id, projectId, structureId, userId, doc: docBody} = entryInput;
+        const {id, projectId, structureId, userId, ...entryBody} = entryInput;
 
         if (!id) {
             throw new Error('id required');
@@ -53,262 +53,288 @@ export default async function UpdateEntry(entryInput: TEntryInput): Promise<{ent
 
                 const {schemaDataBody, id: entryId} = payload;
 
-                data = data ?? [];
-
                 output.entry = await (async function(entryId) {
                     const entry: any = {};
 
-                    for (const schemaData of schemaDataBody) {
-                        const valueData = data[schemaData.key];
-
-                        const options = schemaData.validations.reduce((acc: any, v) => {
-                            acc[v.code] = [v.value];
-                            return acc;
-                        }, {});
-
-                        if (schemaData.type === 'single_line_text' || schemaData.type === 'multi_line_text') {
-                            const [errorsValue, valueValue] = validateString(valueData, options);
-
-                            if (Array.isArray(options.unique) ? options.unique[0] : options.unique) {
-                                const isUniquie: boolean|null = await checkUnique(valueValue, {entryId, projectId, structureId, key: schemaData.key});
-                                if (isUniquie === false) {
-                                    errors.push({field: [schemaData.key], message: 'Value must be unique'}); 
-                                }
-                            }
-
-                            if (errorsValue.length > 0) {
-                                errors.push({field: [schemaData.key], message: errorsValue[0]}); 
-                            }
-
-                            if (valueValue !== null && valueValue !== undefined) {
-                                entry[schemaData.key] = valueValue;
-                            }
-                        }
-                        if (schemaData.type === 'number_integer' || schemaData.type === 'number_decimal') {
-                            const [errorsValue, valueValue] = validateNumber(valueData, options);
-  
-                            if (errorsValue.length > 0) {
-                                errors.push({field: [schemaData.key], message: errorsValue[0]}); 
-                            }
-
-                            if (valueValue !== null && valueValue !== undefined) {
-                                entry[schemaData.key] = valueValue;
-                            }
-                        }
-                        if (schemaData.type === 'boolean') {
-                            const [errorsValue, valueValue] = validateString(valueData, options);
-
-                            if (errorsValue.length > 0) {
-                                errors.push({field: [schemaData.key], message: errorsValue[0]}); 
-                            }
-
-                            if (valueValue !== null && valueValue !== undefined) {
-                                entry[schemaData.key] = valueValue;
-                            }
-                        }
-                        if (schemaData.type === 'date_time') {
-                            const [errorsValue, valueValue] = validateDateTime(valueData, options);
-
-                            if (errorsValue.length > 0) {
-                                errors.push({field: [schemaData.key], message: errorsValue[0]}); 
-                            }
-
-                            if (valueValue !== null && valueValue !== undefined) {
-                                entry[schemaData.key] = valueValue;
-                            }
-                        }
-                        if (schemaData.type === 'date') {
-                            const [errorsValue, valueValue] = validateDate(valueData, options);
-
-                            if (errorsValue.length > 0) {
-                                errors.push({field: [schemaData.key], message: errorsValue[0]}); 
-                            }
-
-                            if (valueValue !== null && valueValue !== undefined) {
-                                entry[schemaData.key] = valueValue;
-                            }
-                        }
-                        if (schemaData.type === 'file_reference') {
-                            const [errorsValue, valueValue] = validateString(valueData, options);
-
-                            if (errorsValue.length > 0) {
-                                errors.push({field: [schemaData.key], message: errorsValue[0]}); 
-                            }
-
-                            if (valueValue !== null && valueValue !== undefined) {
-                                entry[schemaData.key] = valueValue;
-                            }
-                        }
-                        if (schemaData.type === 'list.single_line_text') {
-                            const {required, ...restOptions} = options;
-                            const [errorsValue, valueValue] = validateArray(valueData, {
-                                required,
-                                value: ['string', restOptions]
+                    if (data.hasOwnProperty('sectionIds')) {
+                        const {sectionIds} = data;
+                        if (sectionIds !== undefined && sectionIds !== null) {
+                            const [errorsSectionIds, valueSectionIds] = validateArray(sectionIds, {
+                                value: ['string', {}]
                             });
-
-                            if (errorsValue.length > 0) {
-                                if (valueValue.length) {
-                                    for (let i=0; i < errorsValue.length; i++) {
-                                        if (!errorsValue[i]) {
+                            if (errorsSectionIds.length > 0) {
+                                if (errorsSectionIds.length) {
+                                    for (let i=0; i < errorsSectionIds.length; i++) {
+                                        if (!errorsSectionIds[i]) {
                                             continue;
                                         }
-                                        errors.push({field: [schemaData.key, i], message: errorsValue[i]}); 
+                                        errors.push({field: ['sectionIds', i], message: errorsSectionIds[i]}); 
                                     }
                                 } else {
-                                    errors.push({field: [schemaData.key], message: errorsValue[0]});
+                                    errors.push({field: ['sectionIds'], message: errorsSectionIds[0]});
                                 }
                             }
-
-                            if (valueValue !== null && valueValue !== undefined) {
-                                entry[schemaData.key] = valueValue;
-                            }
+                            entry.sectionIds = valueSectionIds;
                         }
-                        if (schemaData.type === 'list.number_integer' || schemaData.type === 'list.number_decimal') {
-                            const {required, ...restOptions} = options;
-                            const [errorsValue, valueValue] = validateArray(valueData, {
-                                required,
-                                value: ['number', restOptions]
-                            });
+                    }
+                    if (data.hasOwnProperty('doc')) {
+                        const {doc} = data;
+                        if (doc !== undefined && doc !== null) {
+                            entry['doc'] = {};
 
-                            if (errorsValue.length > 0) {
-                                if (valueValue.length) {
-                                    for (let i=0; i < errorsValue.length; i++) {
-                                        if (!errorsValue[i]) {
-                                            continue;
+                            for (const schemaData of schemaDataBody) {
+                                const valueData = doc[schemaData.key];
+        
+                                const options = schemaData.validations.reduce((acc: any, v) => {
+                                    acc[v.code] = [v.value];
+                                    return acc;
+                                }, {});
+        
+                                if (schemaData.type === 'single_line_text' || schemaData.type === 'multi_line_text') {
+                                    const [errorsValue, valueValue] = validateString(valueData, options);
+        
+                                    if (Array.isArray(options.unique) ? options.unique[0] : options.unique) {
+                                        const isUniquie: boolean|null = await checkUnique(valueValue, {entryId, projectId, structureId, subject: 'entry', key: 'doc.'+schemaData.key});
+                                        if (isUniquie === false) {
+                                            errors.push({field: ['doc', schemaData.key], message: 'Value must be unique'}); 
                                         }
-                                        errors.push({field: [schemaData.key, i], message: errorsValue[i]}); 
                                     }
-                                } else {
-                                    errors.push({field: [schemaData.key], message: errorsValue[0]});
+        
+                                    if (errorsValue.length > 0) {
+                                        errors.push({field: ['doc', schemaData.key], message: errorsValue[0]}); 
+                                    }
+        
+                                    if (valueValue !== null && valueValue !== undefined) {
+                                        entry['doc'][schemaData.key] = valueValue;
+                                    }
                                 }
-                            }
-
-                            if (valueValue !== null && valueValue !== undefined) {
-                                entry[schemaData.key] = valueValue;
-                            }
-                        }
-                        if (schemaData.type === 'list.date_time') {
-                            const {required, ...restOptions} = options;
-                            const [errorsValue, valueValue] = validateArray(valueData, {
-                                required,
-                                value: ['datetime', restOptions]
-                            });
-
-                            if (errorsValue.length > 0) {
-                                if (valueValue.length) {
-                                    for (let i=0; i < errorsValue.length; i++) {
-                                        if (!errorsValue[i]) {
-                                            continue;
+                                if (schemaData.type === 'number_integer' || schemaData.type === 'number_decimal') {
+                                    const [errorsValue, valueValue] = validateNumber(valueData, options);
+          
+                                    if (errorsValue.length > 0) {
+                                        errors.push({field: ['doc', schemaData.key], message: errorsValue[0]}); 
+                                    }
+        
+                                    if (valueValue !== null && valueValue !== undefined) {
+                                        entry['doc'][schemaData.key] = valueValue;
+                                    }
+                                }
+                                if (schemaData.type === 'boolean') {
+                                    const [errorsValue, valueValue] = validateString(valueData, options);
+        
+                                    if (errorsValue.length > 0) {
+                                        errors.push({field: ['doc', schemaData.key], message: errorsValue[0]}); 
+                                    }
+        
+                                    if (valueValue !== null && valueValue !== undefined) {
+                                        entry['doc'][schemaData.key] = valueValue;
+                                    }
+                                }
+                                if (schemaData.type === 'date_time') {
+                                    const [errorsValue, valueValue] = validateDateTime(valueData, options);
+        
+                                    if (errorsValue.length > 0) {
+                                        errors.push({field: ['doc', schemaData.key], message: errorsValue[0]}); 
+                                    }
+        
+                                    if (valueValue !== null && valueValue !== undefined) {
+                                        entry['doc'][schemaData.key] = valueValue;
+                                    }
+                                }
+                                if (schemaData.type === 'date') {
+                                    const [errorsValue, valueValue] = validateDate(valueData, options);
+        
+                                    if (errorsValue.length > 0) {
+                                        errors.push({field: ['doc', schemaData.key], message: errorsValue[0]}); 
+                                    }
+        
+                                    if (valueValue !== null && valueValue !== undefined) {
+                                        entry['doc'][schemaData.key] = valueValue;
+                                    }
+                                }
+                                if (schemaData.type === 'file_reference') {
+                                    const [errorsValue, valueValue] = validateString(valueData, options);
+        
+                                    if (errorsValue.length > 0) {
+                                        errors.push({field: ['doc', schemaData.key], message: errorsValue[0]}); 
+                                    }
+        
+                                    if (valueValue !== null && valueValue !== undefined) {
+                                        entry['doc'][schemaData.key] = valueValue;
+                                    }
+                                }
+                                if (schemaData.type === 'list.single_line_text') {
+                                    const {required, ...restOptions} = options;
+                                    const [errorsValue, valueValue] = validateArray(valueData, {
+                                        required,
+                                        value: ['string', restOptions]
+                                    });
+        
+                                    if (errorsValue.length > 0) {
+                                        if (valueValue.length) {
+                                            for (let i=0; i < errorsValue.length; i++) {
+                                                if (!errorsValue[i]) {
+                                                    continue;
+                                                }
+                                                errors.push({field: ['doc', schemaData.key, i], message: errorsValue[i]}); 
+                                            }
+                                        } else {
+                                            errors.push({field: ['doc', schemaData.key], message: errorsValue[0]});
                                         }
-                                        errors.push({field: [schemaData.key, i], message: errorsValue[i]}); 
                                     }
-                                } else {
-                                    errors.push({field: [schemaData.key], message: errorsValue[0]});
+        
+                                    if (valueValue !== null && valueValue !== undefined) {
+                                        entry['doc'][schemaData.key] = valueValue;
+                                    }
                                 }
-                            }
-
-                            if (valueValue !== null && valueValue !== undefined) {
-                                entry[schemaData.key] = valueValue;
-                            }
-                        }
-                        if (schemaData.type === 'list.date') {
-                            const {required, ...restOptions} = options;
-                            const [errorsValue, valueValue] = validateArray(valueData, {
-                                required,
-                                value: ['date', restOptions]
-                            });
-
-                            if (errorsValue.length > 0) {
-                                if (valueValue.length) {
-                                    for (let i=0; i < errorsValue.length; i++) {
-                                        if (!errorsValue[i]) {
-                                            continue;
+                                if (schemaData.type === 'list.number_integer' || schemaData.type === 'list.number_decimal') {
+                                    const {required, ...restOptions} = options;
+                                    const [errorsValue, valueValue] = validateArray(valueData, {
+                                        required,
+                                        value: ['number', restOptions]
+                                    });
+        
+                                    if (errorsValue.length > 0) {
+                                        if (valueValue.length) {
+                                            for (let i=0; i < errorsValue.length; i++) {
+                                                if (!errorsValue[i]) {
+                                                    continue;
+                                                }
+                                                errors.push({field: ['doc', schemaData.key, i], message: errorsValue[i]}); 
+                                            }
+                                        } else {
+                                            errors.push({field: ['doc', schemaData.key], message: errorsValue[0]});
                                         }
-                                        errors.push({field: [schemaData.key, i], message: errorsValue[i]}); 
                                     }
-                                } else {
-                                    errors.push({field: [schemaData.key], message: errorsValue[0]});
+        
+                                    if (valueValue !== null && valueValue !== undefined) {
+                                        entry['doc'][schemaData.key] = valueValue;
+                                    }
                                 }
-                            }
-
-                            if (valueValue !== null && valueValue !== undefined) {
-                                entry[schemaData.key] = valueValue;
-                            }
-                        }
-                        if (schemaData.type === 'list.file_reference') {
-                            const {required, ...restOptions} = options;
-                            const [errorsValue, valueValue] = validateArray(valueData, {
-                                required,
-                                value: ['string', restOptions]
-                            });
-
-                            if (errorsValue.length > 0) {
-                                if (valueValue.length) {
-                                    for (let i=0; i < errorsValue.length; i++) {
-                                        if (!errorsValue[i]) {
-                                            continue;
+                                if (schemaData.type === 'list.date_time') {
+                                    const {required, ...restOptions} = options;
+                                    const [errorsValue, valueValue] = validateArray(valueData, {
+                                        required,
+                                        value: ['datetime', restOptions]
+                                    });
+        
+                                    if (errorsValue.length > 0) {
+                                        if (valueValue.length) {
+                                            for (let i=0; i < errorsValue.length; i++) {
+                                                if (!errorsValue[i]) {
+                                                    continue;
+                                                }
+                                                errors.push({field: ['doc', schemaData.key, i], message: errorsValue[i]}); 
+                                            }
+                                        } else {
+                                            errors.push({field: ['doc', schemaData.key], message: errorsValue[0]});
                                         }
-                                        errors.push({field: [schemaData.key, i], message: errorsValue[i]}); 
                                     }
-                                } else {
-                                    errors.push({field: [schemaData.key], message: errorsValue[0]});
+        
+                                    if (valueValue !== null && valueValue !== undefined) {
+                                        entry['doc'][schemaData.key] = valueValue;
+                                    }
                                 }
-                            }
-
-                            if (valueValue !== null && valueValue !== undefined) {
-                                entry[schemaData.key] = valueValue;
-                            }
-                        }
-                        if (schemaData.type === 'money') {
-                            const {required, ...restOptions} = options;
-
-                            const [errorsValue, valueValue] = validateArray(valueData, {
-                                required: true,
-                                max: 3
-                            });
-                            if (errorsValue.length) {
-                                errors.push({field: [schemaData.key], message: errorsValue[0]});
-                            }
-
-                            valueValue.map((v:any, k:number) => {
-                                const {amount, currencyCode} = v;
-
-                                const [errorsAmount, valueAmount] = validateNumber(amount, {required});
-                                if (errorsAmount.length > 0) {
-                                    errors.push({field: [schemaData.key, k, 'amount'], message: errorsAmount[0]});
+                                if (schemaData.type === 'list.date') {
+                                    const {required, ...restOptions} = options;
+                                    const [errorsValue, valueValue] = validateArray(valueData, {
+                                        required,
+                                        value: ['date', restOptions]
+                                    });
+        
+                                    if (errorsValue.length > 0) {
+                                        if (valueValue.length) {
+                                            for (let i=0; i < errorsValue.length; i++) {
+                                                if (!errorsValue[i]) {
+                                                    continue;
+                                                }
+                                                errors.push({field: ['doc', schemaData.key, i], message: errorsValue[i]}); 
+                                            }
+                                        } else {
+                                            errors.push({field: ['doc', schemaData.key], message: errorsValue[0]});
+                                        }
+                                    }
+        
+                                    if (valueValue !== null && valueValue !== undefined) {
+                                        entry['doc'][schemaData.key] = valueValue;
+                                    }
                                 }
-                                const [errorsCurrencyCode, valueCurrencyCode] = validateString(currencyCode, {required});
-                                if (errorsCurrencyCode.length > 0) {
-                                    errors.push({field: [schemaData.key, k, 'currencyCode'], message: errorsCurrencyCode[0]});
+                                if (schemaData.type === 'list.file_reference') {
+                                    const {required, ...restOptions} = options;
+                                    const [errorsValue, valueValue] = validateArray(valueData, {
+                                        required,
+                                        value: ['string', restOptions]
+                                    });
+        
+                                    if (errorsValue.length > 0) {
+                                        if (valueValue.length) {
+                                            for (let i=0; i < errorsValue.length; i++) {
+                                                if (!errorsValue[i]) {
+                                                    continue;
+                                                }
+                                                errors.push({field: ['doc', schemaData.key, i], message: errorsValue[i]}); 
+                                            }
+                                        } else {
+                                            errors.push({field: ['doc', schemaData.key], message: errorsValue[0]});
+                                        }
+                                    }
+        
+                                    if (valueValue !== null && valueValue !== undefined) {
+                                        entry['doc'][schemaData.key] = valueValue;
+                                    }
                                 }
-                            });
-
-                            if (valueValue !== null && valueValue !== undefined) {
-                                entry[schemaData.key] = valueValue;
-                            }
-                        }
-                        if (schemaData.type === 'url_handle') {
-                            const brickRef = schemaData.validations.find(v => v.code === 'brick_reference');
-                            const valueOfBrickRef: string|null = brickRef ? data[brickRef.value] : null;
-
-                            let handle: string = valueData;
-                            if (!handle && valueOfBrickRef) {
-                                handle = slugify(valueOfBrickRef, {lower: true});
-                            }
-
-                            const [errorsValue, valueValue] = validateString(handle, {required: true, ...options});
-
-                            const isUniquie: boolean|null = await checkUnique(valueValue, {entryId, projectId, structureId, key: schemaData.key});
-                            if (isUniquie === false) {
-                                errors.push({field: [schemaData.key], message: 'Value must be unique', value: valueValue}); 
-                            }
-
-                            if (errorsValue.length > 0) {
-                                errors.push({field: [schemaData.key], message: errorsValue[0]}); 
-                            }
-
-                            if (valueValue !== null && valueValue !== undefined) {
-                                entry[schemaData.key] = valueValue;
+                                if (schemaData.type === 'money') {
+                                    const {required, ...restOptions} = options;
+        
+                                    const [errorsValue, valueValue] = validateArray(valueData, {
+                                        required: true,
+                                        max: 3
+                                    });
+                                    if (errorsValue.length) {
+                                        errors.push({field: ['doc', schemaData.key], message: errorsValue[0]});
+                                    }
+        
+                                    valueValue.map((v:any, k:number) => {
+                                        const {amount, currencyCode} = v;
+        
+                                        const [errorsAmount, valueAmount] = validateNumber(amount, {required});
+                                        if (errorsAmount.length > 0) {
+                                            errors.push({field: ['doc', schemaData.key, k, 'amount'], message: errorsAmount[0]});
+                                        }
+                                        const [errorsCurrencyCode, valueCurrencyCode] = validateString(currencyCode, {required});
+                                        if (errorsCurrencyCode.length > 0) {
+                                            errors.push({field: ['doc', schemaData.key, k, 'currencyCode'], message: errorsCurrencyCode[0]});
+                                        }
+                                    });
+        
+                                    if (valueValue !== null && valueValue !== undefined) {
+                                        entry['doc'][schemaData.key] = valueValue;
+                                    }
+                                }
+                                if (schemaData.type === 'url_handle') {
+                                    const brickRef = schemaData.validations.find(v => v.code === 'brick_reference');
+                                    const valueOfBrickRef: string|null = brickRef ? doc[brickRef.value] : null;
+        
+                                    let handle: string = valueData;
+                                    if (!handle && valueOfBrickRef) {
+                                        handle = slugify(valueOfBrickRef, {lower: true});
+                                    }
+        
+                                    const [errorsValue, valueValue] = validateString(handle, {required: true, ...options});
+        
+                                    const isUniquie: boolean|null = await checkUnique(valueValue, {entryId, projectId, structureId, subject: 'entry', key: 'doc.'+schemaData.key});
+                                    if (isUniquie === false) {
+                                        errors.push({field: ['doc', schemaData.key], message: 'Value must be unique', value: valueValue}); 
+                                    }
+        
+                                    if (errorsValue.length > 0) {
+                                        errors.push({field: ['doc', schemaData.key], message: errorsValue[0]}); 
+                                    }
+        
+                                    if (valueValue !== null && valueValue !== undefined) {
+                                        entry['doc'][schemaData.key] = valueValue;
+                                    }
+                                }
                             }
                         }
                     }
@@ -325,7 +351,7 @@ export default async function UpdateEntry(entryInput: TEntryInput): Promise<{ent
 
                 return {errors: [{message}]};
             }
-        })(docBody, {schemaDataBody, id});
+        })(entryBody, {schemaDataBody, id});
         if (Object.keys(errorsForm).length > 0) {
             return {
                 entry: null,
@@ -339,7 +365,7 @@ export default async function UpdateEntry(entryInput: TEntryInput): Promise<{ent
                 const output: any = {};
 
                 const updatedAt = new Date();
-                const entry: TEntryModel|null = await Entry.findOneAndUpdate({userId, projectId, _id: id}, {doc: data.entry, updatedAt, updatedBy: userId});
+                const entry: TEntryModel|null = await Entry.findOneAndUpdate({userId, projectId, _id: id}, {...data.entry, updatedAt, updatedBy: userId});
                 if (isErrorEntry(entry)) {
                     throw new Error('Failed to update entry');
                 }
@@ -386,7 +412,8 @@ export default async function UpdateEntry(entryInput: TEntryInput): Promise<{ent
                         updatedAt: entry.updatedAt,
                         createdBy: entry.createdBy,
                         updatedBy: entry.updatedBy,
-                        doc: entry.doc
+                        doc: entry.doc,
+                        sectionIds: entry.sectionIds
                     }
                 }
 

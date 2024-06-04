@@ -1,11 +1,11 @@
 import express, { Request, Response, NextFunction } from 'express'
-import EntriesController from '@/controllers/entry/entries.controller'
-import NewEntryController from '@/controllers/entry/new-entry.controller'
-import EditEntryController from '@/controllers/entry/edit-entry.controller'
-import DeleteEntryController from '@/controllers/entry/delete-entry.controller'
-import EntryController from '@/controllers/entry/entry.controller'
-import CountEntryController from '@/controllers/entry/count-entries.controller'
-import { TEntryInput, TParameters } from '@/types/types'
+import SectionsController from '@/controllers/section/sections.controller'
+import NewSectionController from '@/controllers/section/new-section.controller'
+import EditSectionController from '@/controllers/section/edit-section.controller'
+import SectionController from '@/controllers/section/section.controller'
+import DeleteSectionController from '@/controllers/section/delete-section.controller'
+import CountSectionController from '@/controllers/section/count-sections.controller'
+import { TParameters, TSectionInput } from '@/types/types'
 
 const router = express.Router();
 
@@ -17,12 +17,12 @@ type TQueryGet = {
     page: string;
     sinceId: string;
     ids: string;
-    section_id: string;
+    parent_id: string;
 }
 
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { userId, projectId, structureId, limit, page, sinceId, ids, section_id } = req.query as TQueryGet;
+        const { userId, projectId, structureId, limit, page, sinceId, ids, parent_id } = req.query as TQueryGet;
 
         const parameters: TParameters = {};
         if (limit) {
@@ -37,11 +37,11 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
         if (ids) {
             parameters.ids = ids;
         }
-        if (section_id) {
-            parameters.section_id = section_id;
+        if (parent_id) {
+            parameters.parent_id = parent_id;
         }
 
-        const data = await EntriesController({
+        const data = await SectionsController({
             userId,
             projectId,
             structureId
@@ -50,6 +50,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 
         res.json(data);
     } catch (e) {
+
         let message = String(e);
 
         if (e instanceof Error) {
@@ -64,7 +65,7 @@ router.get('/count', async (req: Request, res: Response, next: NextFunction) => 
     try {
         const { userId, projectId, structureId } = req.query as {userId: string, projectId: string, structureId: string};
 
-        const data = await CountEntryController({
+        const data = await CountSectionController({
             userId,
             projectId,
             structureId,
@@ -84,14 +85,14 @@ router.get('/count', async (req: Request, res: Response, next: NextFunction) => 
 
 router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        let {userId, projectId, structureId, doc, sectionIds}: TEntryInput&{userId: string} = req.body;
+        let {userId, projectId, structureId, parentId, doc}: TSectionInput&{userId: string} = req.body;
 
-        const data = await NewEntryController({
+        const data = await NewSectionController({
             projectId,
             structureId,
+            parentId,
             userId,
-            doc, 
-            sectionIds
+            doc
         });
 
         res.json(data);
@@ -108,19 +109,18 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
 
 router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        let {id, userId, projectId, structureId, doc, sectionIds}: TEntryInput&{userId: string} = req.body;
+        let {id, userId, projectId, structureId, doc}: TSectionInput&{userId: string} = req.body;
 
         if (req.params.id !== id) {
             throw new Error('id invalid');
         }
 
-        const data = await EditEntryController({
+        const data = await EditSectionController({
             id,
             projectId,
             structureId,
             userId,
-            doc,
-            sectionIds
+            doc
         });
 
         res.json(data);
@@ -140,7 +140,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
         const { userId, projectId, structureId} = req.query as {userId: string, projectId: string, structureId: string};
         const { id } = req.params;
 
-        const data = await EntryController({
+        const data = await SectionController({
             userId,
             projectId,
             structureId,
@@ -164,7 +164,7 @@ router.delete('/:id', async (req: Request, res: Response, next: NextFunction) =>
         const { userId, projectId } = req.query as {userId: string, projectId: string};
         const { id } = req.params;
 
-        const data = await DeleteEntryController({
+        const data = await DeleteSectionController({
             userId,
             projectId,
             id

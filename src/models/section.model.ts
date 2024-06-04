@@ -1,4 +1,4 @@
-import { TEntryModel } from "@/types/types";
+import { TSectionModel } from "@/types/types";
 import mongoose, { Schema, Document } from "mongoose";
 
 const ObjectId = Schema.ObjectId;
@@ -7,7 +7,7 @@ const DocSchema: Schema = new Schema({}, { _id : false, strict: false });
 DocSchema.set('toObject', { virtuals: true });
 DocSchema.set('toJSON', { virtuals: true });
 
-const EntriesSchema: Schema = new Schema({
+const SectionsSchema: Schema = new Schema({
     userId: {
         type: ObjectId,
         require: true
@@ -19,6 +19,10 @@ const EntriesSchema: Schema = new Schema({
     structureId: {
         type: ObjectId,
         require: true
+    },
+    parentId: {
+        type: ObjectId,
+        default: null
     },
     createdAt: {
         type: Date,
@@ -38,14 +42,10 @@ const EntriesSchema: Schema = new Schema({
         type: ObjectId,
         required: true
     },
-    doc: DocSchema,
-    sectionIds: {
-        type: [String],
-        default: []
-    }
+    doc: DocSchema
 });
 
-EntriesSchema.set('toObject', { virtuals: true });
-EntriesSchema.set('toJSON', { virtuals: true });
+SectionsSchema.set('toObject', { virtuals: true });
+SectionsSchema.set('toJSON', { virtuals: true });
 
-export default mongoose.models.Entries || mongoose.model < TEntryModel & Document > ("Entries", EntriesSchema);
+export default mongoose.models.Sections || mongoose.model < TSectionModel & Document > ("Sections", SectionsSchema);
