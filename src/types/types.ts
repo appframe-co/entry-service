@@ -60,6 +60,7 @@ export type TSection = {
   createdBy: string;
   updatedBy: string;
   doc: TDoc;
+  sections?: TSection[];
 }
 
 export type TEntryInput = {
@@ -117,7 +118,7 @@ export type TStructure = {
   notifications: TNotifications;
 }
 
-type TBrick = {
+export type TBrick = {
   type: string;
   name: string;
   key: string;
@@ -135,8 +136,9 @@ export type TParameters = {
   page?: number;
   sinceId?: string;
   ids?: string;
-  section_id?: string;
-  parent_id?: string;
+  sectionId?: string;
+  parentId?: string;
+  depthLevel?: number;
 }
 
 type TMinNum = number | [number, string];

@@ -18,11 +18,12 @@ type TQueryGet = {
     sinceId: string;
     ids: string;
     parent_id: string;
+    depth_level: string;
 }
 
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { userId, projectId, structureId, limit, page, sinceId, ids, parent_id } = req.query as TQueryGet;
+        const { userId, projectId, structureId, limit, page, sinceId, ids, parent_id:parentId, depth_level:depthLevel } = req.query as TQueryGet;
 
         const parameters: TParameters = {};
         if (limit) {
@@ -37,8 +38,11 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
         if (ids) {
             parameters.ids = ids;
         }
-        if (parent_id) {
-            parameters.parent_id = parent_id;
+        if (parentId) {
+            parameters.parentId = parentId;
+        }
+        if (depthLevel) {
+            parameters.depthLevel = +depthLevel;
         }
 
         const data = await SectionsController({

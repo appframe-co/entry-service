@@ -16,7 +16,7 @@ export default async function Entries(entryInput: TEntryInput, parameters: TPara
         const defaultLimit = 10;
 
         const filter: any = {createdBy: userId, projectId, structureId};
-        let {sinceId, limit=defaultLimit, page=1, ids, section_id: sectionId} = parameters;
+        let {sinceId, limit=defaultLimit, page=1, ids, sectionId} = parameters;
 
         if (limit > 250) {
             limit = defaultLimit;

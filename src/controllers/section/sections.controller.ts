@@ -1,5 +1,5 @@
 import Section from '@/models/section.model';
-import {TDoc, TErrorResponse, TFile, TStructure, TParameters, TSection, TSectionModel} from '@/types/types';
+import {TDoc, TErrorResponse, TFile, TStructure, TParameters, TSection, TSectionModel, TBrick} from '@/types/types';
 
 function isErrorStructure(data: TErrorResponse|{structure: TStructure}): data is TErrorResponse {
     return (data as TErrorResponse).error !== undefined;
@@ -18,6 +18,15 @@ type TProps = {
     parent: TSection|null;
 }
 
+type TFilter = {
+    createdBy: string;
+    projectId: string;
+    structureId: string;
+    _id?: any;
+    parentId?: string|null;
+}
+
+
 export default async function Sections(sectionInput: TSectionInput, parameters: TParameters = {}): Promise<TErrorResponse | TProps>{
     try {
         const {userId, projectId, structureId} = sectionInput;
@@ -27,9 +36,10 @@ export default async function Sections(sectionInput: TSectionInput, parameters: 
         }
 
         const defaultLimit = 10;
+        const defaultDepthLevel = 3;
 
-        const filter: any = {createdBy: userId, projectId, structureId};
-        let {sinceId, limit=defaultLimit, page=1, ids, parent_id=null} = parameters;
+        const filter: TFilter = {createdBy: userId, projectId, structureId};
+        let {sinceId, limit=defaultLimit, page=1, ids, parentId=null, depthLevel=1} = parameters;
 
         if (limit > 250) {
             limit = defaultLimit;
@@ -40,14 +50,11 @@ export default async function Sections(sectionInput: TSectionInput, parameters: 
         if (ids) {
             filter['_id'] = {$in: ids.split(',')};
         }
-        filter['parentId'] = parent_id;
+        filter['parentId'] = parentId;
+
+        depthLevel = depthLevel > 3 ? defaultDepthLevel : depthLevel;
 
         const skip = (page - 1) * limit;
-
-        const sections: TSectionModel[] = await Section.find(filter).skip(skip).limit(limit);
-        if (!sections) {
-            throw new Error('invalid sections');
-        }
 
         // GET structure
         const resFetchStructure = await fetch(`${process.env.URL_STRUCTURE_SERVICE}/api/structures/${structureId}?userId=${userId}&projectId=${projectId}`, {
@@ -66,6 +73,64 @@ export default async function Sections(sectionInput: TSectionInput, parameters: 
         // COMPARE sections by structure
         const names = structure.sections.bricks.map(b => b.name);
         const keys = structure.sections.bricks.map(b => b.key);
+
+        const parent: TSection|null = await (async function() {
+            try {
+                const section: TSectionModel|null = await Section.findOne({createdBy: userId, projectId, structureId, _id: parentId});
+                if (!section) {
+                    return null;
+                }
+    
+                const doc = keys.reduce((acc: TDoc, key: string) => {
+                    acc[key] = section.doc.hasOwnProperty(key) ? section.doc[key] : null
+        
+                    return acc;
+                }, {});
+        
+                return {
+                    id: section.id,
+                    projectId: section.projectId,
+                    structureId: section.structureId,
+                    parentId: section.parentId,
+                    createdAt: section.createdAt,
+                    updatedAt: section.updatedAt,
+                    createdBy: section.createdBy,
+                    updatedBy: section.updatedBy,
+                    doc
+                };
+            } catch(e) {
+                return null;
+            }
+        })();
+
+        const sections:TSection[] = await getSections(filter, keys, structure.bricks, projectId);
+        if (depthLevel > 1) {
+            for (let section of sections) {
+                filter.parentId = section.id;
+                section.sections = await getSections(filter, keys, structure.bricks, projectId);            
+
+                if (depthLevel > 2) {
+                    for (let section2 of section.sections) {
+                        filter.parentId = section2.id;
+                        section2.sections = await getSections(filter, keys, structure.bricks, projectId);
+                    }
+                }
+            }
+        }
+
+        return {sections, names, keys, parent};
+    } catch (error) {
+        throw error;
+    }
+}
+
+async function getSections(filter:TFilter, keys:string[], bricks: TBrick[], projectId:string):Promise<TSection[]> {
+    try {
+        const sections: TSectionModel[] = await Section.find(filter).skip(0).limit(50);
+        if (!sections) {
+            throw new Error('invalid sections');
+        }
+
         const result = sections.map(section => {
             const doc = keys.reduce((acc: TDoc, key: string) => {
                 acc[key] = section.doc.hasOwnProperty(key) ? section.doc[key] : null
@@ -88,14 +153,14 @@ export default async function Sections(sectionInput: TSectionInput, parameters: 
 
         let fileIds: string[] = [];
         const types = ['file_reference', 'list.file_reference'];
-        const keyListFile = structure.bricks.filter(b => types.includes(b.type)).map(b => b.key);
+        const keyListFile = bricks.filter(b => types.includes(b.type)).map(b => b.key);
 
         for (const r of result) {
             for (const key of keyListFile) {
                 if (!r.doc[key]) {
                     continue;
                 }
-                
+
                 if (Array.isArray(r.doc[key])) {
                     fileIds = [...fileIds, ...r.doc[key]];
                 } else {
@@ -130,37 +195,8 @@ export default async function Sections(sectionInput: TSectionInput, parameters: 
             }
         }
 
-        const parent: TSection|null = await (async function() {
-            try {
-                const section: TSectionModel|null = await Section.findOne({createdBy: userId, projectId, structureId, _id: parent_id});
-                if (!section) {
-                    return null;
-                }
-    
-                const doc = keys.reduce((acc: TDoc, key: string) => {
-                    acc[key] = section.doc.hasOwnProperty(key) ? section.doc[key] : null
-        
-                    return acc;
-                }, {});
-        
-                return {
-                    id: section.id,
-                    projectId: section.projectId,
-                    structureId: section.structureId,
-                    parentId: section.parentId,
-                    createdAt: section.createdAt,
-                    updatedAt: section.updatedAt,
-                    createdBy: section.createdBy,
-                    updatedBy: section.updatedBy,
-                    doc
-                };
-            } catch(e) {
-                return null;
-            }
-        })();
-
-        return {sections: result, names, keys, parent};
-    } catch (error) {
-        throw error;
+        return result;
+    } catch {
+        return [];
     }
 }
