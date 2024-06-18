@@ -89,7 +89,7 @@ router.get('/count', async (req: Request, res: Response, next: NextFunction) => 
 
 router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        let {userId, projectId, structureId, parentId, doc}: TSectionInput&{userId: string} = req.body;
+        let {userId, projectId, structureId, parentId, doc}: TSectionInput = req.body;
 
         const data = await NewSectionController({
             projectId,
@@ -113,7 +113,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
 
 router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        let {id, userId, projectId, structureId, doc}: TSectionInput&{userId: string} = req.body;
+        let {id, userId, projectId, structureId, doc}: TSectionInput = req.body;
 
         if (req.params.id !== id) {
             throw new Error('id invalid');

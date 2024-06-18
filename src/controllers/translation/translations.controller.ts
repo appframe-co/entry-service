@@ -1,5 +1,5 @@
 import Translation from '@/models/translation.model';
-import {TErrorResponse, TStructure, TParameters, TTranslation, TTranslationModel} from '@/types/types';
+import {TErrorResponse, TParameters, TTranslation, TTranslationModel} from '@/types/types';
 
 type TTranslationInput = {
     userId: string; 
